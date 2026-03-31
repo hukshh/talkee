@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Real-Time Messaging App Setup Guide
 
-## Getting Started
+This project is a real-time messaging web application built with Next.js, Clerk, Convex, and Tailwind CSS.
 
-First, run the development server:
+## 1. Prerequisites
+- Node.js 18.x or later
+- npm installed
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 2. Environment Variables Setup
+
+You will need accounts for both [Clerk](https://clerk.com/) (for authentication) and [Convex](https://convex.dev/) (for real-time database).
+
+Create a `.env.local` file in the root of your project (`messenger-1/.env.local`):
+
+```env
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+
+# Convex Database (these will be populated automatically when you run 'npx convex dev')
+CONVEX_DEPLOYMENT=your_convex_deployment
+NEXT_PUBLIC_CONVEX_URL=your_convex_url
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Getting Clerk Keys
+1. Go to your Clerk dashboard and create a new application.
+2. Select **Email**, **Password**, and any social providers you prefer.
+3. Copy the **Publishable Key** and **Secret Key** into `.env.local`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Getting Convex Keys
+1. Run `npx convex dev` in your terminal.
+2. Follow the prompts to log in via GitHub/browser and create a new project.
+3. This command will automatically configure `.env.local` with your Convex Deployment and URL variables, and push your schema to the Convex dashboard.
+4. Keep the `npx convex dev` terminal open—it syncs changes in real-time.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 3. Running the Application
 
-## Learn More
+Once your `.env.local` is fully populated:
 
-To learn more about Next.js, take a look at the following resources:
+1. In a new terminal tab, run the Next.js development server:
+   ```bash
+   npm run dev
+   ```
+2. Open [http://localhost:3000](http://localhost:3000) in your browser.
+3. You should see the login screen. Sign up with a new account.
+4. Your account will automatically sync into the Convex `users` database.
+5. You can open a second Incognito window, create another account, and start chatting between them in real time!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 4. Key Features Implemented
+- **Real-Time Database**: Instant messaging using Convex's WebSocket subscriptions.
+- **Authentication**: Clerk handles sessions, passwords, and security smoothly.
+- **Presence Tracking**: Green "Online" indicator tracks when a user's tab is active versus hidden.
+- **Typing Indicators**: Live "typing..." text appears globally when users are typing in a conversation.
+- **Message Badges**: Unread message counts appear in the sidebar and disappear when the chat opens.
+- **Auto-scroll**: Smart auto-scroll down to see new messages, with a floating "⬇ Arrow" if you manually scroll up to read history.
+- **Soft Delete**: Users can delete their own messages, converting them to generic text without deleting the database record.
