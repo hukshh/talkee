@@ -8,7 +8,8 @@ import { MessageBubble } from "./MessageBubble";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, ArrowDown } from "lucide-react";
+import { Send, ArrowDown, Video } from "lucide-react";
+import { VideoCall } from "./VideoCall";
 
 export function ChatWindow({ conversationId }: { conversationId: string }) {
     const { user } = useUser();
@@ -37,6 +38,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const [isCalling, setIsCalling] = useState(false);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -115,12 +117,21 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
 
     return (
         <div className="flex-1 flex flex-col h-full bg-white relative">
-            <div className="flex items-center gap-3 p-4 border-b shrink-0">
-                <img src={otherUser.avatarUrl} alt={otherUser.name} className="w-10 h-10 rounded-full" />
-                <div>
-                    <h2 className="font-semibold">{otherUser.name}</h2>
-                    <PresenceText userId={otherUser._id} isTyping={isOtherUserTyping} />
+            <div className="flex items-center justify-between p-4 border-b shrink-0">
+                <div className="flex items-center gap-3">
+                    <img src={otherUser.avatarUrl} alt={otherUser.name} className="w-10 h-10 rounded-full" />
+                    <div>
+                        <h2 className="font-semibold">{otherUser.name}</h2>
+                        <PresenceText userId={otherUser._id} isTyping={isOtherUserTyping} />
+                    </div>
                 </div>
+                <button
+                    onClick={() => setIsCalling(true)}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition"
+                    title="Start Video Call"
+                >
+                    <Video className="w-6 h-6" />
+                </button>
             </div>
 
             <div
@@ -167,6 +178,14 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                     </Button>
                 </form>
             </div>
+
+            {isCalling && (
+                <VideoCall
+                    isCaller={true}
+                    receiverId={otherUser._id}
+                    onClose={() => setIsCalling(false)}
+                />
+            )}
         </div>
     );
 }

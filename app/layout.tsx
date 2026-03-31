@@ -4,6 +4,7 @@ import "./globals.css";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { SyncUser } from "@/components/SyncUser";
 import { Toaster } from "@/components/ui/sonner";
+import { IncomingCallAlert } from "@/components/IncomingCallAlert";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ConvexClientProvider>
           <SyncUser />
+          <IncomingCallAlert />
           {children}
           <Toaster />
         </ConvexClientProvider>

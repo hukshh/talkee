@@ -38,4 +38,22 @@ export default defineSchema({
     isTyping: v.boolean(),
     lastTypedAt: v.number(),
   }).index("by_conversation", ["conversationId", "userId"]),
+
+  calls: defineTable({
+    callerId: v.id("users"),
+    receiverId: v.id("users"),
+    status: v.union(v.literal("ringing"), v.literal("accepted"), v.literal("rejected"), v.literal("ended")),
+    sdpOffer: v.optional(v.string()), // JSON string of RTCSessionDescriptionInit
+    sdpAnswer: v.optional(v.string()), // JSON string of RTCSessionDescriptionInit
+  })
+    .index("by_receiver", ["receiverId"])
+    .index("by_caller", ["callerId"]),
+
+  ice_candidates: defineTable({
+    callId: v.id("calls"),
+    userId: v.id("users"),
+    type: v.union(v.literal("caller"), v.literal("receiver")),
+    candidate: v.string(), // JSON string of RTCIceCandidateInit
+  }).index("by_call", ["callId"]),
 });
+
