@@ -23,7 +23,6 @@ export const sendMessage = mutation({
             seen: false,
         });
 
-        // Update conversation last message and timestamp
         await ctx.db.patch(args.conversationId, {
             lastMessage: args.content,
             updatedAt: Date.now(),

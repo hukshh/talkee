@@ -76,3 +76,37 @@ export const getUserById = query({
         return await ctx.db.get(args.userId);
     },
 });
+
+export const getCurrentUser = query({
+    args: { currentClerkId: v.string() },
+    handler: async (ctx, args) => {
+        return await ctx.db
+            .query("users")
+            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
+            .unique();
+    },
+});
+
+export const onboardUser = mutation({
+    args: {
+        currentClerkId: v.string(),
+        name: v.string(),
+        age: v.number(),
+        gender: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+        if (args.age < 18) throw new Error("You must be 18 or older to use this app.");
+
+        await ctx.db.patch(user._id, {
+            name: args.name,
+            age: args.age,
+            gender: args.gender,
+        });
+    },
+});

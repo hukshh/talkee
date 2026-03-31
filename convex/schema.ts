@@ -7,6 +7,8 @@ export default defineSchema({
     name: v.string(),
     avatarUrl: v.optional(v.string()),
     createdAt: v.number(),
+    age: v.optional(v.number()),
+    gender: v.optional(v.string()),
   }).index("by_clerkId", ["clerkId"]),
 
   presence: defineTable({
@@ -55,5 +57,15 @@ export default defineSchema({
     type: v.union(v.literal("caller"), v.literal("receiver")),
     candidate: v.string(), // JSON string of RTCIceCandidateInit
   }).index("by_call", ["callId"]),
+
+  swipes: defineTable({
+    swiperId: v.id("users"),
+    swipedId: v.id("users"),
+    action: v.union(v.literal("like"), v.literal("pass")),
+  })
+    .index("by_swiper", ["swiperId"])
+    .index("by_swiped", ["swipedId"])
+    .index("by_swipe", ["swiperId", "swipedId"]),
 });
+
 

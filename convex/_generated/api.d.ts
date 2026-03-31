@@ -10,8 +10,10 @@
 
 import type * as calls from "../calls.js";
 import type * as conversations from "../conversations.js";
+import type * as matches from "../matches.js";
 import type * as messages from "../messages.js";
 import type * as presence from "../presence.js";
+import type * as seed from "../seed.js";
 import type * as typing from "../typing.js";
 import type * as users from "../users.js";
 
@@ -24,8 +26,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   calls: typeof calls;
   conversations: typeof conversations;
+  matches: typeof matches;
   messages: typeof messages;
   presence: typeof presence;
+  seed: typeof seed;
   typing: typeof typing;
   users: typeof users;
 }>;

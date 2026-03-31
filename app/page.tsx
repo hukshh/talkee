@@ -3,13 +3,20 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { ChatWindow } from "@/components/ChatWindow";
+import { DiscoverFeed } from "@/components/DiscoverFeed";
+import { OnboardingForm } from "@/components/OnboardingForm";
 import { useUser } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>();
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const currentClerkId = user?.id;
   const router = useRouter();
+
+  const currentUser = useQuery(api.users.getCurrentUser, currentClerkId ? { currentClerkId } : "skip");
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -17,7 +24,12 @@ export default function Home() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  if (!isLoaded || !isSignedIn) return null;
+  if (!isLoaded || !isSignedIn || currentUser === undefined) return null;
+
+  // Onboarding gate (under 18 block + profile completion)
+  if (currentUser && (!currentUser.age || !currentUser.gender)) {
+    return <main className="flex h-screen w-full bg-gray-50"><OnboardingForm currentUser={currentUser} /></main>;
+  }
 
   return (
     <main className="flex h-screen w-full bg-gray-50 overflow-hidden">
@@ -44,22 +56,7 @@ export default function Home() {
             <ChatWindow key={activeConversationId} conversationId={activeConversationId} />
           </>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8">
-            <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-              <svg
-                className="w-12 h-12 text-blue-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Real-Time Messenger</h2>
-            <p className="text-gray-500 max-w-sm">
-              Select an existing conversation from the sidebar or search for users to start a new chat.
-            </p>
-          </div>
+          <DiscoverFeed />
         )}
       </div>
     </main>

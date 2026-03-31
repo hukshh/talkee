@@ -5,6 +5,7 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import { SearchBar } from "./SearchBar";
 import { UserList } from "./UserList";
 import { ConversationList } from "./ConversationList";
+import { NotificationsPanel } from "./NotificationsPanel";
 import { MessageSquare, Users } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -27,7 +28,10 @@ export function Sidebar({
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                     Messages
                 </h1>
-                <UserButton appearance={{ elements: { avatarBox: "w-10 h-10" } }} />
+                <div className="flex items-center gap-3">
+                    <NotificationsPanel onSelectUser={onSelectConversation} />
+                    <UserButton appearance={{ elements: { avatarBox: "w-10 h-10 cursor-pointer hover:opacity-80 transition" } }} />
+                </div>
             </div>
 
             <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />

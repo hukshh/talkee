@@ -17,7 +17,7 @@ export function UserList({
     const { user } = useUser();
     const currentClerkId = user?.id;
 
-    const users = useQuery(api.users.getAllUsers, currentClerkId ? { currentClerkId } : "skip");
+    const users = useQuery(api.matches.getMatches, currentClerkId ? { currentClerkId } : "skip");
     const createConversation = useMutation(api.conversations.createConversation);
 
     if (users === undefined) {
