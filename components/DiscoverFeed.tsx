@@ -17,6 +17,7 @@ export function DiscoverFeed() {
     // Maintain a local queue to allow instant UI updates
     const [queue, setQueue] = useState<any[]>([]);
     const [animatingOut, setAnimatingOut] = useState<"like" | "pass" | null>(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({});
 
     useEffect(() => {
         // Only set queue if it's currently empty, so we don't override mid-session
@@ -48,6 +49,13 @@ export function DiscoverFeed() {
         }, 400); // match Tailwind transition duration
     };
 
+    const nextImage = (profileId: string, imagesCount: number) => {
+        setCurrentImageIndex(prev => ({
+            ...prev,
+            [profileId]: ((prev[profileId] || 0) + 1) % imagesCount
+        }));
+    };
+
     if (queue.length === 0) {
         return (
             <div className="flex-1 flex flex-col pt-32 h-full bg-gray-50 items-center">
@@ -65,16 +73,18 @@ export function DiscoverFeed() {
 
     return (
         <div className="flex-1 flex flex-col h-full bg-gray-50 items-center justify-center p-4 relative overflow-hidden">
-            <div className="absolute top-8 left-8">
+            <div className="absolute top-8 left-8 hidden md:block">
                 <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-purple-600 tracking-tighter">
                     Discover
                 </h1>
                 <p className="text-gray-500 font-medium">Find your next connection</p>
             </div>
 
-            <div className="relative w-full max-w-sm aspect-[3/4] mt-8">
+            <div className="relative w-full max-w-sm aspect-[3/4.5] mt-8">
                 {cardStack.map((profile, i) => {
                     const isTopCard = i === cardStack.length - 1;
+                    const images = profile.images || (profile.avatarUrl ? [profile.avatarUrl] : []);
+                    const imgIndex = currentImageIndex[profile._id] || 0;
 
                     let animationClass = "scale-95 translate-y-4 opacity-0"; // Bottom card default
                     if (isTopCard) {
@@ -91,25 +101,46 @@ export function DiscoverFeed() {
                     return (
                         <div
                             key={profile._id}
-                            className={`absolute inset-0 bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col ${animationClass}`}
+                            className={`absolute inset-0 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col ${animationClass}`}
                             style={{ transformOrigin: "bottom center" }}
                         >
-                            <div className="flex-1 relative bg-gray-100">
-                                {profile.avatarUrl ? (
-                                    <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
+                            <div className="flex-1 relative bg-gray-100 group cursor-pointer" onClick={() => isTopCard && images.length > 1 && nextImage(profile._id, images.length)}>
+                                {images.length > 0 ? (
+                                    <img 
+                                        src={images[imgIndex].startsWith('http') ? images[imgIndex] : `https://talkative-jaguar-123.convex.cloud/api/storage/get/${images[imgIndex]}`} 
+                                        alt={profile.name} 
+                                        className="w-full h-full object-cover select-none" 
+                                    />
                                 ) : (
                                     <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-200" />
                                 )}
 
+                                {/* Image progression indicators */}
+                                {images.length > 1 && (
+                                    <div className="absolute top-4 inset-x-4 flex gap-1.5 z-20">
+                                        {images.map((_, idx) => (
+                                            <div key={idx} className={`flex-1 h-1 rounded-full transition-colors ${idx === imgIndex ? 'bg-white' : 'bg-white/30'}`} />
+                                        ))}
+                                    </div>
+                                )}
+
                                 {/* Gradient overlay for text legibility */}
-                                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+                                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
 
                                 <div className="absolute bottom-6 left-6 right-6 text-white drop-shadow-md">
-                                    <h2 className="text-4xl font-black tracking-tight">{profile.name}</h2>
-                                    <div className="flex items-center gap-2 mt-2 ml-1">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
-                                        <span className="text-sm font-semibold tracking-wide text-gray-200 uppercase">Active Now</span>
+                                    <div className="flex items-center gap-3">
+                                        <h2 className="text-4xl font-black tracking-tight">{profile.name}</h2>
+                                        {profile.age && <span className="text-2xl font-bold opacity-80">{profile.age}</span>}
                                     </div>
+                                    <div className="flex items-center gap-2 mt-1 mb-3">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+                                        <span className="text-xs font-bold tracking-widest text-gray-300 uppercase">Online</span>
+                                    </div>
+                                    {profile.bio && (
+                                        <p className="text-sm font-medium text-gray-200 line-clamp-3 leading-relaxed bg-black/20 p-3 rounded-2xl backdrop-blur-sm border border-white/5">
+                                            {profile.bio}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>

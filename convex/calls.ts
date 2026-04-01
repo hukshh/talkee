@@ -15,6 +15,25 @@ export const initiateCall = mutation({
 
         if (!caller) throw new Error("Caller not found");
 
+        const today = new Date().toISOString().split("T")[0];
+        let dailyVideoCalls = caller.dailyVideoCalls || 0;
+        
+        if (caller.lastCallResetDate !== today) {
+            dailyVideoCalls = 0;
+        }
+
+        const tier = caller.subscriptionTier || "free";
+        if (tier === "free" && dailyVideoCalls >= 3) {
+            throw new Error("Daily limit reached for free tier. Upgrade to Pro for more calls!");
+        } else if (tier === "pro" && dailyVideoCalls >= 10) {
+            throw new Error("Daily limit reached for pro tier. Upgrade to Ultra for unlimited calls!");
+        }
+
+        await ctx.db.patch(caller._id, {
+            dailyVideoCalls: dailyVideoCalls + 1,
+            lastCallResetDate: today,
+        });
+
         return await ctx.db.insert("calls", {
             callerId: caller._id,
             receiverId: args.receiverId,

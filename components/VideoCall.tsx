@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { PhoneOff, Mic, MicOff, Video, VideoOff } from "lucide-react";
+import { toast } from "sonner";
 
 export function VideoCall({
     isCaller,
@@ -40,6 +41,10 @@ export function VideoCall({
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+    const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+    const [isBlurred, setIsBlurred] = useState(false);
+
+    const currentUser = useQuery(api.users.getCurrentUser, currentClerkId ? { currentClerkId } : "skip");
 
     const cleanup = useCallback(() => {
         if (localStream) {
@@ -54,6 +59,54 @@ export function VideoCall({
         }
         onClose();
     }, [localStream, callId, endCall, onClose]);
+
+    // Anti-screenshot / recording visibility check
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            setIsBlurred(document.visibilityState === "hidden");
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "PrintScreen" || (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4" || e.key === "5"))) {
+                toast.error("Screenshots are not allowed!");
+                e.preventDefault();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        window.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
+
+    // Timer logic
+    useEffect(() => {
+        if (callState?.status === "accepted" && currentUser) {
+            const tier = currentUser.subscriptionTier || "free";
+            let duration = 0;
+            if (tier === "free") duration = 90; // 1:30 min
+            else if (tier === "pro") duration = 300; // 5 min
+            else if (tier === "ultra") return; // Unlimited
+
+            setSecondsLeft(duration);
+
+            const interval = setInterval(() => {
+                setSecondsLeft((prev) => {
+                    if (prev === null) return null;
+                    if (prev <= 1) {
+                        clearInterval(interval);
+                        cleanup();
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [callState?.status, currentUser, cleanup]);
 
     // Handle call state updates
     useEffect(() => {
@@ -173,19 +226,39 @@ export function VideoCall({
         }
     };
 
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+    };
+
     return (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+        <div 
+            className={`fixed inset-0 z-50 bg-black flex flex-col select-none touch-none ${isBlurred ? 'blur-2xl' : ''}`}
+            style={{ WebkitUserSelect: 'none', WebkitUserDrag: 'none' } as any}
+        >
             <div className="flex-1 relative flex items-center justify-center p-4">
+                {/* Timer Display */}
+                {secondsLeft !== null && (
+                    <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10">
+                        <div className={`px-4 py-2 rounded-full font-mono text-lg font-bold backdrop-blur-md border ${
+                            secondsLeft < 30 ? "bg-red-500/80 border-red-400 text-white animate-pulse" : "bg-black/50 border-white/20 text-white"
+                        }`}>
+                            {formatTime(secondsLeft)}
+                        </div>
+                    </div>
+                )}
+
                 {/* Remote Video */}
                 <video
                     ref={remoteVideoRef}
                     autoPlay
                     playsInline
-                    className="w-full h-full object-cover rounded-2xl bg-gray-900"
+                    className="w-full h-full object-cover rounded-2xl bg-gray-900 shadow-2xl"
                 />
 
                 {/* Local Video */}
-                <div className="absolute top-8 right-8 w-48 h-64 bg-gray-800 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700">
+                <div className="absolute top-8 right-8 w-48 h-64 bg-gray-800 rounded-xl overflow-hidden shadow-2xl border-2 border-white/10 group">
                     <video
                         ref={localVideoRef}
                         autoPlay
@@ -202,14 +275,20 @@ export function VideoCall({
 
                 {/* Call Status Overlay */}
                 {callState?.status === "ringing" && isCaller && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-xl animate-pulse bg-black/50 px-6 py-3 rounded-full backdrop-blur-md">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-xl animate-pulse bg-black/50 px-6 py-3 rounded-full backdrop-blur-md border border-white/10">
                         Ringing...
+                    </div>
+                )}
+
+                {isBlurred && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xl z-20">
+                        <p className="text-white text-xl font-bold">Recording/Snapshot Mitigation Active</p>
                     </div>
                 )}
             </div>
 
             {/* Controls */}
-            <div className="h-24 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-center gap-6 pb-6">
+            <div className="h-24 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-center justify-center gap-6 pb-6 px-4">
                 <button
                     onClick={toggleMute}
                     className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isMuted ? "bg-red-500 hover:bg-red-600 text-white" : "bg-gray-700/80 hover:bg-gray-600 text-white backdrop-blur-md"

@@ -93,6 +93,8 @@ export const onboardUser = mutation({
         name: v.string(),
         age: v.number(),
         gender: v.string(),
+        bio: v.optional(v.string()),
+        images: v.optional(v.array(v.string())),
     },
     handler: async (ctx, args) => {
         const user = await ctx.db
@@ -107,6 +109,60 @@ export const onboardUser = mutation({
             name: args.name,
             age: args.age,
             gender: args.gender,
+            bio: args.bio,
+            images: args.images,
+            subscriptionTier: user.subscriptionTier || "free",
+            virtualCurrency: user.virtualCurrency || 0,
+        });
+    },
+});
+
+export const generateUploadUrl = mutation(async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+});
+
+export const addVirtualCurrency = mutation({
+    args: {
+        currentClerkId: v.string(),
+        amount: v.number(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+
+        await ctx.db.patch(user._id, {
+            virtualCurrency: (user.virtualCurrency || 0) + args.amount,
+        });
+    },
+});
+
+export const upgradeSubscriptionTier = mutation({
+    args: {
+        currentClerkId: v.string(),
+        targetTier: v.union(v.literal("pro"), v.literal("ultra")),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+
+        const cost = args.targetTier === "pro" ? 500 : 1000;
+        const currentCurrency = user.virtualCurrency || 0;
+
+        if (currentCurrency < cost) {
+            throw new Error("Insufficient virtual currency.");
+        }
+
+        await ctx.db.patch(user._id, {
+            virtualCurrency: currentCurrency - cost,
+            subscriptionTier: args.targetTier,
         });
     },
 });

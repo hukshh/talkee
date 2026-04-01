@@ -9,6 +9,12 @@ export default defineSchema({
     createdAt: v.number(),
     age: v.optional(v.number()),
     gender: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    images: v.optional(v.array(v.string())),
+    virtualCurrency: v.optional(v.number()),
+    subscriptionTier: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("ultra"))),
+    dailyVideoCalls: v.optional(v.number()),
+    lastCallResetDate: v.optional(v.string()),
   }).index("by_clerkId", ["clerkId"]),
 
   presence: defineTable({

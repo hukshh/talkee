@@ -10,8 +10,11 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 
+import { Wallet } from "@/components/Wallet";
+
 export default function Home() {
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>();
+  const [isWalletActive, setIsWalletActive] = useState(false);
   const { isLoaded, isSignedIn, user } = useUser();
   const currentClerkId = user?.id;
   const router = useRouter();
@@ -27,21 +30,44 @@ export default function Home() {
   if (!isLoaded || !isSignedIn || currentUser === undefined) return null;
 
   // Onboarding gate (under 18 block + profile completion)
-  if (currentUser && (!currentUser.age || !currentUser.gender)) {
+  if (currentUser && (!currentUser.age || !currentUser.gender || !currentUser.bio || !currentUser.images || currentUser.images.length < 2)) {
     return <main className="flex h-screen w-full bg-gray-50"><OnboardingForm currentUser={currentUser} /></main>;
   }
 
+  const handleSelectConversation = (id: string) => {
+    setActiveConversationId(id);
+    setIsWalletActive(false);
+  };
+
+  const handleSelectWallet = () => {
+    setIsWalletActive(true);
+    setActiveConversationId(undefined);
+  };
+
   return (
     <main className="flex h-screen w-full bg-gray-50 overflow-hidden">
-      <div className={`w-full md:w-[350px] md:block ${activeConversationId ? "hidden" : "block"}`}>
+      <div className={`w-full md:w-[350px] md:block ${activeConversationId || isWalletActive ? "hidden" : "block"}`}>
         <Sidebar
           activeConversationId={activeConversationId}
-          onSelectConversation={(id) => setActiveConversationId(id)}
+          onSelectConversation={handleSelectConversation}
+          onSelectWallet={handleSelectWallet}
         />
       </div>
 
-      <div className={`flex-1 flex flex-col h-full bg-white relative shadow-l-xl z-10 ${!activeConversationId ? "hidden md:flex" : "flex"}`}>
-        {activeConversationId ? (
+      <div className={`flex-1 flex flex-col h-full bg-white relative shadow-l-xl z-10 ${!activeConversationId && !isWalletActive ? "hidden md:flex" : "flex"}`}>
+        {isWalletActive ? (
+          <>
+            <div className="md:hidden flex items-center p-4 border-b">
+              <button
+                onClick={() => setIsWalletActive(false)}
+                className="text-blue-600 font-medium"
+              >
+                ← Back
+              </button>
+            </div>
+            <Wallet />
+          </>
+        ) : activeConversationId ? (
           <>
             {/* Mobile back button header */}
             <div className="md:hidden flex items-center p-4 border-b">
