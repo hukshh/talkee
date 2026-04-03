@@ -2,7 +2,10 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 export const getPotentialMatches = query({
-    args: { currentClerkId: v.string() },
+    args: {
+        currentClerkId: v.string(),
+        genders: v.optional(v.array(v.string())),
+    },
     handler: async (ctx, args) => {
         const currentUser = await ctx.db
             .query("users")
@@ -23,8 +26,15 @@ export const getPotentialMatches = query({
 
         const swipedIds = new Set(pastSwipes.map((s) => s.swipedId));
 
-        // Return users that haven't been swiped on yet
-        return otherUsers.filter((u) => !swipedIds.has(u._id));
+        // Filter users that haven't been swiped on yet
+        let filtered = otherUsers.filter((u) => !swipedIds.has(u._id));
+
+        // Apply gender filter if provided
+        if (args.genders && args.genders.length > 0) {
+            filtered = filtered.filter((u) => u.gender && args.genders!.includes(u.gender));
+        }
+
+        return filtered;
     },
 });
 

@@ -5,6 +5,7 @@ export const sendMessage = mutation({
     args: {
         conversationId: v.id("conversations"),
         content: v.string(),
+        imageUrl: v.optional(v.string()),
         currentClerkId: v.string(),
     },
     handler: async (ctx, args) => {
@@ -19,12 +20,14 @@ export const sendMessage = mutation({
             senderId: currentUser._id,
             conversationId: args.conversationId,
             content: args.content,
+            imageUrl: args.imageUrl,
             createdAt: Date.now(),
             seen: false,
         });
 
         await ctx.db.patch(args.conversationId, {
-            lastMessage: args.content,
+            lastMessage: args.imageUrl ? "📷 GIF" : args.content,
+            lastMessageSenderName: currentUser.name,
             updatedAt: Date.now(),
         });
 
@@ -35,10 +38,24 @@ export const sendMessage = mutation({
 export const getMessages = query({
     args: { conversationId: v.id("conversations") },
     handler: async (ctx, args) => {
-        return await ctx.db
+        const messages = await ctx.db
             .query("messages")
             .withIndex("by_conversationId", (q) => q.eq("conversationId", args.conversationId))
             .collect();
+
+        const hydrated = [];
+        for (const msg of messages) {
+            const sender = await ctx.db.get(msg.senderId);
+            hydrated.push({
+                ...msg,
+                sender: sender ? {
+                    name: sender.name,
+                    avatarUrl: sender.avatarUrl,
+                    clerkId: sender.clerkId,
+                } : null,
+            });
+        }
+        return hydrated;
     },
 });
 

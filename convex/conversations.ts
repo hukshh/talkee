@@ -53,7 +53,60 @@ export const getConversationsForUser = query({
             c.members.includes(currentUser._id)
         );
 
+        // Hydrate with member info for groups and names for recipients
+        const hydrated = [];
+        for (const conv of userConversations) {
+            const memberInfo = [];
+            for (const memberId of conv.members) {
+                const member = await ctx.db.get(memberId);
+                if (member) {
+                    const presence = await ctx.db
+                        .query("presence")
+                        .withIndex("by_userId", (q) => q.eq("userId", member._id))
+                        .unique();
+                    memberInfo.push({
+                        _id: member._id,
+                        name: member.name,
+                        avatarUrl: member.avatarUrl,
+                        isOnline: presence?.isOnline ?? false,
+                    });
+                }
+            }
+            hydrated.push({ ...conv, memberInfo });
+        }
+
         // Sort by most recently updated
-        return userConversations.sort((a, b) => b.updatedAt - a.updatedAt);
+        return hydrated.sort((a, b) => b.updatedAt - a.updatedAt);
+    },
+});
+
+export const createGroup = mutation({
+    args: {
+        name: v.string(),
+        memberIds: v.array(v.id("users")),
+        currentClerkId: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const currentUser = await ctx.db
+            .query("users")
+            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
+            .unique();
+
+        if (!currentUser) throw new Error("User not found");
+
+        const allMemberIds = Array.from(new Set([currentUser._id, ...args.memberIds]));
+
+        return await ctx.db.insert("conversations", {
+            members: allMemberIds,
+            isGroup: true,
+            groupName: args.name,
+            updatedAt: Date.now(),
+        });
+    },
+});
+export const getConversationById = query({
+    args: { conversationId: v.id("conversations") },
+    handler: async (ctx, args) => {
+        return await ctx.db.get(args.conversationId);
     },
 });

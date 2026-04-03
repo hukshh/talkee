@@ -5,6 +5,9 @@ import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { SyncUser } from "@/components/SyncUser";
 import { Toaster } from "@/components/ui/sonner";
 import { IncomingCallAlert } from "@/components/IncomingCallAlert";
+import { Preloader } from "@/components/Preloader";
+import { NavProvider } from "@/context/NavContext";
+import { MobileNavbarWrapper } from "@/components/MobileNavbarWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,13 +22,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ConvexClientProvider>
-          <SyncUser />
-          <IncomingCallAlert />
-          {children}
-          <Toaster />
+          <NavProvider>
+            <SyncUser />
+            <IncomingCallAlert />
+            <Preloader>
+              {children}
+            </Preloader>
+            <MobileNavbarWrapper />
+            <Toaster />
+          </NavProvider>
         </ConvexClientProvider>
       </body>
     </html>

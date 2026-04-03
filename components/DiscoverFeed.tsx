@@ -1,170 +1,166 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/nextjs";
-import { Heart, X } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, Filter, Sparkles, MapPin, Heart, Plus, Zap, Users } from "lucide-react";
 import { Button } from "./ui/button";
+import { UserProfileModal } from "./UserProfileModal";
+import { useUser } from "@clerk/nextjs";
+import { Badge } from "./ui/badge";
+import clsx from "clsx";
 
 export function DiscoverFeed() {
     const { user } = useUser();
     const currentClerkId = user?.id;
-
-    const rawMatches = useQuery(api.matches.getPotentialMatches, currentClerkId ? { currentClerkId } : "skip");
-    const swipeMutation = useMutation(api.matches.swipe);
-
-    // Maintain a local queue to allow instant UI updates
-    const [queue, setQueue] = useState<any[]>([]);
-    const [animatingOut, setAnimatingOut] = useState<"like" | "pass" | null>(null);
-    const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({});
+    const users = useQuery(api.users.getAllUsers, currentClerkId ? { currentClerkId } : "skip");
+    const currentUser = useQuery(api.users.getCurrentUser, currentClerkId ? { currentClerkId } : "skip");
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [points, setPoints] = useState<{ x: number, y: number }[]>([]);
 
     useEffect(() => {
-        // Only set queue if it's currently empty, so we don't override mid-session
-        if (rawMatches && queue.length === 0 && !animatingOut) {
-            setQueue(rawMatches);
-        }
-    }, [rawMatches, queue.length, animatingOut]);
-
-    if (!user || rawMatches === undefined) {
-        return (
-            <div className="flex-1 flex items-center justify-center bg-gray-50">
-                <div className="w-8 h-8 rounded-full border-4 border-t-blue-600 animate-spin" />
-            </div>
-        );
-    }
-
-    const handleSwipe = async (userId: string, action: "like" | "pass") => {
-        if (animatingOut || queue.length === 0) return;
-
-        setAnimatingOut(action);
-
-        // Perform backend mutation without blocking UI
-        swipeMutation({ currentClerkId: currentClerkId!, swipedId: userId as any, action }).catch(console.error);
-
-        // Wait for exit animation
-        setTimeout(() => {
-            setQueue(prev => prev.slice(1));
-            setAnimatingOut(null);
-        }, 400); // match Tailwind transition duration
-    };
-
-    const nextImage = (profileId: string, imagesCount: number) => {
-        setCurrentImageIndex(prev => ({
-            ...prev,
-            [profileId]: ((prev[profileId] || 0) + 1) % imagesCount
+        const newPoints = Array.from({ length: 6 }).map(() => ({
+            x: Math.random() * 100,
+            y: Math.random() * 100,
         }));
-    };
+        setPoints(newPoints);
+    }, []);
 
-    if (queue.length === 0) {
-        return (
-            <div className="flex-1 flex flex-col pt-32 h-full bg-gray-50 items-center">
-                <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6">
-                    <Heart className="w-10 h-10 text-gray-300" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-800">You're all caught up!</h2>
-                <p className="text-gray-500 mt-2">Check back later for more potential matches.</p>
-            </div>
+    const filteredUsers = useMemo(() => {
+        if (!users) return [];
+        return users.filter(u =>
+            u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            u.bio?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }
+    }, [users, searchQuery]);
 
-    // We only render the top two cards for performance and visual stack effect
-    const cardStack = queue.slice(0, 2).reverse();
+    if (users === undefined) return (
+        <div className="flex-1 flex items-center justify-center py-40">
+            <div className="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin shadow-2xl" />
+        </div>
+    );
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-gray-50 items-center justify-center p-4 relative overflow-hidden">
-            <div className="absolute top-8 left-8 hidden md:block">
-                <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-purple-600 tracking-tighter">
-                    Discover
-                </h1>
-                <p className="text-gray-500 font-medium">Find your next connection</p>
+        <div className="flex-1 p-4 md:p-8 space-y-8 relative overflow-hidden">
+            {/* Ambient Background Elements */}
+            <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+                {points.map((p, i) => (
+                    <div
+                        key={i}
+                        className="absolute w-[400px] h-[400px] bg-white/5 rounded-full blur-[100px] animate-pulse"
+                        style={{
+                            top: `${p.y}%`,
+                            left: `${p.x}%`,
+                            animationDelay: `${i * 2}s`
+                        }}
+                    />
+                ))}
             </div>
 
-            <div className="relative w-full max-w-sm aspect-[3/4.5] mt-8">
-                {cardStack.map((profile, i) => {
-                    const isTopCard = i === cardStack.length - 1;
-                    const images = profile.images || (profile.avatarUrl ? [profile.avatarUrl] : []);
-                    const imgIndex = currentImageIndex[profile._id] || 0;
+            {/* Header / Social Search */}
+            <div className="max-w-6xl mx-auto space-y-8 mt-4 md:mt-10 px-2">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 glass-grey rounded-2xl flex items-center justify-center border border-white/10 shadow-2xl">
+                                <Sparkles className="w-5 h-5 text-white" />
+                            </div>
+                            <h1 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter">
+                                Discover <span className="text-zinc-400 italic">Vibes</span>
+                            </h1>
+                        </div>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] italic px-1">Scanning for compatible frequencies</p>
+                    </div>
+                </div>
 
-                    let animationClass = "scale-95 translate-y-4 opacity-0"; // Bottom card default
-                    if (isTopCard) {
-                        if (animatingOut === "like") animationClass = "translate-x-[150%] rotate-12 opacity-0 transition-all duration-500 ease-in-out";
-                        else if (animatingOut === "pass") animationClass = "-translate-x-[150%] -rotate-12 opacity-0 transition-all duration-500 ease-in-out";
-                        else animationClass = "scale-100 translate-x-0 translate-y-0 opacity-100 transition-all duration-300";
-                    } else if (animatingOut) {
-                        // Background card shifts up when top card animates out
-                        animationClass = "scale-100 translate-x-0 translate-y-0 opacity-100 transition-all duration-500 delay-75 ease-out";
-                    } else {
-                        animationClass = "scale-[0.98] translate-y-2 opacity-90 transition-all duration-300";
-                    }
+                <div className="relative group max-w-2xl">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-white/0 via-white/5 to-white/0 rounded-[2rem] blur opacity-0 group-hover:opacity-100 transition duration-1000" />
+                    <div className="glass-grey flex items-center gap-4 p-2 pl-6 rounded-[2rem] border-white/10 shadow-2xl">
+                        <Search className="w-5 h-5 text-zinc-600" />
+                        <input
+                            type="text"
+                            placeholder="Identify name, vibe, or frequency..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-transparent border-none text-white focus:ring-0 flex-1 h-12 font-bold text-sm italic placeholder:text-zinc-700"
+                        />
+                        <Button className="h-12 px-8 glass-darker text-white rounded-[1.8rem] border-white/5 hover:bg-white hover:text-black font-black uppercase tracking-widest italic transition-all">
+                            Scan
+                        </Button>
+                    </div>
+                </div>
+            </div>
 
-                    return (
-                        <div
-                            key={profile._id}
-                            className={`absolute inset-0 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col ${animationClass}`}
-                            style={{ transformOrigin: "bottom center" }}
-                        >
-                            <div className="flex-1 relative bg-gray-100 group cursor-pointer" onClick={() => isTopCard && images.length > 1 && nextImage(profile._id, images.length)}>
-                                {images.length > 0 ? (
-                                    <img 
-                                        src={images[imgIndex].startsWith('http') ? images[imgIndex] : `https://talkative-jaguar-123.convex.cloud/api/storage/get/${images[imgIndex]}`} 
-                                        alt={profile.name} 
-                                        className="w-full h-full object-cover select-none" 
-                                    />
+            {/* Discover Grid */}
+            <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-2 pb-32">
+                {filteredUsers.map((u, i) => (
+                    <div
+                        key={u._id}
+                        onClick={() => setSelectedUser(u)}
+                        className={clsx(
+                            "group cursor-pointer relative overflow-hidden rounded-[2.5rem] glass-grey border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]",
+                            i % 5 === 0 ? "md:col-span-2 md:row-span-1" : ""
+                        )}
+                    >
+                        <div className="relative h-96 w-full">
+                            <img
+                                src={u.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"}
+                                alt={u.name}
+                                className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-80" />
+
+                            {/* Top Badges */}
+                            <div className="absolute top-6 left-6 flex gap-2">
+                                {u.isOnline ? (
+                                    <div className="glass px-3 py-1.5 rounded-full flex items-center gap-1.5 border-white/10">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
+                                        <span className="text-[9px] font-black text-white uppercase tracking-widest italic">Live</span>
+                                    </div>
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-200" />
-                                )}
-
-                                {/* Image progression indicators */}
-                                {images.length > 1 && (
-                                    <div className="absolute top-4 inset-x-4 flex gap-1.5 z-20">
-                                        {images.map((_, idx) => (
-                                            <div key={idx} className={`flex-1 h-1 rounded-full transition-colors ${idx === imgIndex ? 'bg-white' : 'bg-white/30'}`} />
-                                        ))}
+                                    <div className="glass-darker px-3 py-1.5 rounded-full flex items-center gap-1.5 border-white/5 opacity-60">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+                                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest italic">Offline</span>
                                     </div>
                                 )}
+                            </div>
 
-                                {/* Gradient overlay for text legibility */}
-                                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
-
-                                <div className="absolute bottom-6 left-6 right-6 text-white drop-shadow-md">
-                                    <div className="flex items-center gap-3">
-                                        <h2 className="text-4xl font-black tracking-tight">{profile.name}</h2>
-                                        {profile.age && <span className="text-2xl font-bold opacity-80">{profile.age}</span>}
+                            {/* Info */}
+                            <div className="absolute bottom-8 left-8 right-8 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">{u.name}</h3>
+                                        <div className="flex items-center gap-2 text-zinc-500 font-bold text-[10px] uppercase tracking-widest italic">
+                                            <MapPin className="w-3 h-3" /> Area 51, Hidden
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-1 mb-3">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
-                                        <span className="text-xs font-bold tracking-widest text-gray-300 uppercase">Online</span>
+                                    <div className="h-12 w-12 glass rounded-2xl flex items-center justify-center border-white/10 transition-all group-hover:scale-110 group-hover:bg-white group-hover:text-black">
+                                        <Plus className="w-6 h-6" />
                                     </div>
-                                    {profile.bio && (
-                                        <p className="text-sm font-medium text-gray-200 line-clamp-3 leading-relaxed bg-black/20 p-3 rounded-2xl backdrop-blur-sm border border-white/5">
-                                            {profile.bio}
-                                        </p>
-                                    )}
+                                </div>
+                                <div className="flex flex-wrap gap-2 pt-2">
+                                    {(u.interests || u.fantasy || []).slice(0, 2).map((t: string) => (
+                                        <Badge key={t} variant="secondary" className="bg-white/5 text-white border-white/5 text-[8px] font-black uppercase tracking-widest italic py-1 px-3 rounded-full backdrop-blur-md">
+                                            {t}
+                                        </Badge>
+                                    ))}
                                 </div>
                             </div>
                         </div>
-                    );
-                })}
+                    </div>
+                ))}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-8 mt-10 z-10 w-full max-w-sm justify-center px-4">
-                <Button
-                    onClick={() => handleSwipe(queue[0]._id, "pass")}
-                    disabled={!!animatingOut || queue.length === 0}
-                    className="w-16 h-16 rounded-full bg-white text-rose-500 shadow-[0_8px_20px_rgba(225,29,72,0.15)] hover:bg-rose-50 border-none transition-transform active:scale-90 disabled:opacity-50"
-                >
-                    <X className="w-8 h-8" strokeWidth={3} />
-                </Button>
-                <Button
-                    onClick={() => handleSwipe(queue[0]._id, "like")}
-                    disabled={!!animatingOut || queue.length === 0}
-                    className="w-16 h-16 rounded-full bg-white text-emerald-500 shadow-[0_8px_20px_rgba(16,185,129,0.15)] hover:bg-emerald-50 border-none transition-transform active:scale-90 disabled:opacity-50"
-                >
-                    <Heart className="w-8 h-8 fill-emerald-500" />
-                </Button>
-            </div>
+            {selectedUser && (
+                <UserProfileModal
+                    user={selectedUser}
+                    currentUser={currentUser}
+                    isOpen={!!selectedUser}
+                    onClose={() => setSelectedUser(null)}
+                />
+            )
+            }
         </div>
     );
 }

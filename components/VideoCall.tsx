@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
-import { PhoneOff, Mic, MicOff, Video, VideoOff } from "lucide-react";
+import { PhoneOff, Mic, MicOff, Video, VideoOff, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export function VideoCall({
@@ -33,6 +33,7 @@ export function VideoCall({
     const acceptCall = useMutation(api.calls.acceptCall);
     const endCall = useMutation(api.calls.endCall);
     const addIceCandidateMutation = useMutation(api.calls.addIceCandidate);
+    const deductCoins = useMutation(api.users.deductVirtualCurrency);
 
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -107,6 +108,29 @@ export function VideoCall({
             return () => clearInterval(interval);
         }
     }, [callState?.status, currentUser, cleanup]);
+
+    // Per-minute coin deduction
+    useEffect(() => {
+        if (isCaller && callState?.status === "accepted" && currentUser && currentUser.subscriptionTier !== "ultra") {
+            // Deduct first minute
+            deductCoins({ currentClerkId: currentClerkId!, amount: 20 }).catch(() => {
+                toast.error("Insufficient coins! Hanging up...");
+                cleanup();
+            });
+
+            const deductionInterval = setInterval(async () => {
+                try {
+                    await deductCoins({ currentClerkId: currentClerkId!, amount: 20 });
+                    toast.success("20 coins deducted for current minute", { duration: 2000 });
+                } catch (error: any) {
+                    toast.error("Insufficient coins! Hanging up...");
+                    cleanup();
+                }
+            }, 60000); // Every minute
+
+            return () => clearInterval(deductionInterval);
+        }
+    }, [isCaller, callState?.status, currentUser, currentClerkId, deductCoins, cleanup]);
 
     // Handle call state updates
     useEffect(() => {
@@ -233,83 +257,119 @@ export function VideoCall({
     };
 
     return (
-        <div 
-            className={`fixed inset-0 z-50 bg-black flex flex-col select-none touch-none ${isBlurred ? 'blur-2xl' : ''}`}
+        <div
+            className={`fixed inset-0 z-[300] bg-[#050505] flex flex-col select-none touch-none animate-in fade-in duration-1000 ${isBlurred ? 'blur-3xl' : ''}`}
             style={{ WebkitUserSelect: 'none', WebkitUserDrag: 'none' } as any}
         >
-            <div className="flex-1 relative flex items-center justify-center p-4">
+            <div className="flex-1 relative flex items-center justify-center p-2 sm:p-4">
+                {/* Background Sparkles */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+                    <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-white/5 rounded-full blur-[150px] animate-pulse" />
+                </div>
+
                 {/* Timer Display */}
                 {secondsLeft !== null && (
-                    <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10">
-                        <div className={`px-4 py-2 rounded-full font-mono text-lg font-bold backdrop-blur-md border ${
-                            secondsLeft < 30 ? "bg-red-500/80 border-red-400 text-white animate-pulse" : "bg-black/50 border-white/20 text-white"
-                        }`}>
+                    <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[310] animate-in slide-in-from-top-10 duration-700">
+                        <div className={`px-8 py-3 rounded-full font-black italic text-xl uppercase tracking-widest backdrop-blur-3xl border transition-all duration-500 ${secondsLeft < 30
+                            ? "bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
+                            : "bg-white/5 border-white/20 text-white shadow-2xl"
+                            }`}>
                             {formatTime(secondsLeft)}
                         </div>
                     </div>
                 )}
 
-                {/* Remote Video */}
-                <video
-                    ref={remoteVideoRef}
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-cover rounded-2xl bg-gray-900 shadow-2xl"
-                />
+                {/* Remote Video Container */}
+                <div className="w-full h-full max-w-5xl aspect-[9/16] md:aspect-video relative overflow-hidden rounded-[3rem] border border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-1000">
+                    <video
+                        ref={remoteVideoRef}
+                        autoPlay
+                        playsInline
+                        className="w-full h-full object-cover bg-zinc-950"
+                    />
 
-                {/* Local Video */}
-                <div className="absolute top-8 right-8 w-48 h-64 bg-gray-800 rounded-xl overflow-hidden shadow-2xl border-2 border-white/10 group">
+                    {/* Remote Status Overlay */}
+                    {!remoteVideoRef.current?.srcObject && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-8 bg-zinc-950">
+                            <div className="w-32 h-32 glass-silver rounded-[3.5rem] flex items-center justify-center border-white/20 animate-pulse">
+                                <Video className="w-12 h-12 text-white" />
+                            </div>
+                            <div className="text-center space-y-2">
+                                <p className="text-2xl font-black italic uppercase tracking-tighter text-white">Signal Syncing</p>
+                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] italic">Frequency established... waiting for video</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Local Video - Ultra Premium Window */}
+                <div className="absolute bottom-32 right-8 w-32 h-48 md:w-56 md:h-80 bg-[#0c0c0c] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-2 border-white/20 z-[320] transition-all hover:scale-105 duration-500">
                     <video
                         ref={localVideoRef}
                         autoPlay
                         playsInline
                         muted
-                        className={`w-full h-full object-cover ${isVideoOff ? 'hidden' : ''}`}
+                        className={`w-full h-full object-cover transition-opacity duration-700 ${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
                     />
                     {isVideoOff && (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                            <VideoOff className="w-8 h-8 text-gray-500" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 animate-in fade-in">
+                            <VideoOff className="w-10 h-10 text-zinc-700" />
                         </div>
                     )}
                 </div>
 
-                {/* Call Status Overlay */}
+                {/* Call Status Ringing Overlay */}
                 {callState?.status === "ringing" && isCaller && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-xl animate-pulse bg-black/50 px-6 py-3 rounded-full backdrop-blur-md border border-white/10">
-                        Ringing...
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[330] flex flex-col items-center gap-6">
+                        <div className="w-24 h-24 glass-silver rounded-full border border-white/30 flex items-center justify-center shadow-2xl relative">
+                            <div className="absolute inset-0 rounded-full border-2 border-white animate-ping opacity-20" />
+                            <PhoneOff className="w-10 h-10 text-white rotate-[135deg]" />
+                        </div>
+                        <div className="glass px-8 py-4 rounded-full border border-white/10 backdrop-blur-3xl shadow-2xl">
+                            <p className="text-lg font-black italic uppercase tracking-widest text-white animate-pulse">Establishing Vibe...</p>
+                        </div>
                     </div>
                 )}
 
+                {/* Anti-Cap Overlay */}
                 {isBlurred && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xl z-20">
-                        <p className="text-white text-xl font-bold">Recording/Snapshot Mitigation Active</p>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#050505]/90 backdrop-blur-3xl z-[400] text-center p-12 animate-in fade-in duration-500">
+                        <div className="w-24 h-24 glass rounded-[2.5rem] flex items-center justify-center border-white/10 mb-8">
+                            <ShieldCheck className="w-12 h-12 text-white" />
+                        </div>
+                        <h3 className="text-4xl font-black italic uppercase tracking-tighter text-white mb-4">Signal Protected</h3>
+                        <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Cyber-protection active. Recording and screenshots are strictly forbidden.</p>
                     </div>
                 )}
             </div>
 
-            {/* Controls */}
-            <div className="h-24 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-center justify-center gap-6 pb-6 px-4">
+            {/* Premium Controls */}
+            <div className="h-40 bg-gradient-to-t from-black via-[#050505] to-transparent flex items-center justify-center gap-10 pb-12 px-8 z-[350]">
                 <button
                     onClick={toggleMute}
-                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isMuted ? "bg-red-500 hover:bg-red-600 text-white" : "bg-gray-700/80 hover:bg-gray-600 text-white backdrop-blur-md"
+                    className={`w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all duration-500 border-2 active:scale-90 ${isMuted
+                        ? "bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)]"
+                        : "glass border-white/10 text-zinc-500 hover:text-white hover:border-white/30"
                         }`}
                 >
-                    {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                    {isMuted ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
                 </button>
 
                 <button
                     onClick={cleanup}
-                    className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white shadow-lg shadow-red-500/30 transition-all hover:scale-105"
+                    className="w-24 h-24 rounded-[2.5rem] bg-white text-black hover:bg-zinc-200 flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.3)] transition-all hover:scale-110 active:scale-95 duration-500 group"
                 >
-                    <PhoneOff className="w-7 h-7" />
+                    <PhoneOff className="w-10 h-10 transition-transform group-hover:rotate-[135deg] duration-700" />
                 </button>
 
                 <button
                     onClick={toggleVideo}
-                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isVideoOff ? "bg-red-500 hover:bg-red-600 text-white" : "bg-gray-700/80 hover:bg-gray-600 text-white backdrop-blur-md"
+                    className={`w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all duration-500 border-2 active:scale-90 ${isVideoOff
+                        ? "bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)]"
+                        : "glass border-white/10 text-zinc-500 hover:text-white hover:border-white/30"
                         }`}
                 >
-                    {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+                    {isVideoOff ? <VideoOff className="w-8 h-8" /> : <Video className="w-8 h-8" />}
                 </button>
             </div>
         </div>

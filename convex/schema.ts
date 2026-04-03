@@ -7,14 +7,18 @@ export default defineSchema({
     name: v.string(),
     avatarUrl: v.optional(v.string()),
     createdAt: v.number(),
-    age: v.optional(v.number()),
+    birthDate: v.optional(v.number()),
     gender: v.optional(v.string()),
     bio: v.optional(v.string()),
+    fantasy: v.optional(v.array(v.string())),
+    desire: v.optional(v.array(v.string())),
+    interests: v.optional(v.array(v.string())),
     images: v.optional(v.array(v.string())),
     virtualCurrency: v.optional(v.number()),
     subscriptionTier: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("ultra"))),
     dailyVideoCalls: v.optional(v.number()),
     lastCallResetDate: v.optional(v.string()),
+    lastSeenStatus: v.optional(v.number()),
   }).index("by_clerkId", ["clerkId"]),
 
   presence: defineTable({
@@ -28,6 +32,7 @@ export default defineSchema({
     isGroup: v.boolean(),
     groupName: v.optional(v.string()),
     lastMessage: v.optional(v.string()),
+    lastMessageSenderName: v.optional(v.string()),
     updatedAt: v.number(),
   }),
 
@@ -35,6 +40,7 @@ export default defineSchema({
     senderId: v.id("users"),
     conversationId: v.id("conversations"),
     content: v.string(),
+    imageUrl: v.optional(v.string()),
     createdAt: v.number(),
     seen: v.boolean(),
     deleted: v.optional(v.boolean()),
@@ -72,6 +78,17 @@ export default defineSchema({
     .index("by_swiper", ["swiperId"])
     .index("by_swiped", ["swipedId"])
     .index("by_swipe", ["swiperId", "swipedId"]),
+
+  statuses: defineTable({
+    userId: v.id("users"),
+    mediaUrl: v.string(),
+    mediaType: v.union(v.literal("image"), v.literal("video")),
+    caption: v.optional(v.string()),
+    note: v.optional(v.string()),
+    musicUrl: v.optional(v.string()),
+    musicTitle: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
 });
 
 

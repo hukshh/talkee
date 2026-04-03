@@ -17,7 +17,7 @@ export const initiateCall = mutation({
 
         const today = new Date().toISOString().split("T")[0];
         let dailyVideoCalls = caller.dailyVideoCalls || 0;
-        
+
         if (caller.lastCallResetDate !== today) {
             dailyVideoCalls = 0;
         }
@@ -25,7 +25,7 @@ export const initiateCall = mutation({
         const tier = caller.subscriptionTier || "free";
         if (tier === "free" && dailyVideoCalls >= 3) {
             throw new Error("Daily limit reached for free tier. Upgrade to Pro for more calls!");
-        } else if (tier === "pro" && dailyVideoCalls >= 10) {
+        } else if (tier === "pro" && dailyVideoCalls >= 5) {
             throw new Error("Daily limit reached for pro tier. Upgrade to Ultra for unlimited calls!");
         }
 

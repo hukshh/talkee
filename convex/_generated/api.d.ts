@@ -14,6 +14,7 @@ import type * as matches from "../matches.js";
 import type * as messages from "../messages.js";
 import type * as presence from "../presence.js";
 import type * as seed from "../seed.js";
+import type * as statuses from "../statuses.js";
 import type * as typing from "../typing.js";
 import type * as users from "../users.js";
 
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   presence: typeof presence;
   seed: typeof seed;
+  statuses: typeof statuses;
   typing: typeof typing;
   users: typeof users;
 }>;

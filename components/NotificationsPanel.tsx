@@ -48,8 +48,8 @@ export function NotificationsPanel({ onSelectUser }: { onSelectUser: (id: string
 
             {isOpen && (
                 <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-                    <div className="absolute top-12 -left-20 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform transition-all">
+                    <div className="fixed inset-0 z-40 bg-black/20 md:bg-transparent" onClick={() => setIsOpen(false)} />
+                    <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-12 md:-left-20 w-full md:w-80 bg-white rounded-t-2xl md:rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform transition-all max-h-[70vh] md:max-h-none">
                         <div className="flex items-center justify-between p-3 border-b bg-gray-50/50">
                             <span className="font-bold text-sm text-gray-800">New Connections</span>
                             <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{count} pending</span>

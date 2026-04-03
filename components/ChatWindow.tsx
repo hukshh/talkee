@@ -2,204 +2,314 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/nextjs";
-import { useEffect, useRef, useState } from "react";
-import { MessageBubble } from "./MessageBubble";
+import { useState, useRef, useEffect } from "react";
+import { Send, ArrowDown, Video, Smile, Image as ImageIcon, Users as UsersIcon, ChevronLeft, MoreVertical, Sparkles, X } from "lucide-react";
+import { Button } from "./ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send, ArrowDown, Video } from "lucide-react";
+import { MessageBubble } from "./MessageBubble";
+import { useUser } from "@clerk/nextjs";
+import { toast } from "sonner";
+import clsx from "clsx";
+import { UserProfileModal } from "./UserProfileModal";
+import { Id } from "@/convex/_generated/dataModel";
+import { StatusViewer } from "./StatusViewer";
 import { VideoCall } from "./VideoCall";
 
 export function ChatWindow({ conversationId }: { conversationId: string }) {
     const { user } = useUser();
-    const currentClerkId = user?.id;
-
-    const messages = useQuery(api.messages.getMessages, {
-        conversationId: conversationId as any,
-    });
-
-    const conversations = useQuery(
-        api.conversations.getConversationsForUser,
-        currentClerkId ? { currentClerkId } : "skip"
-    );
-
-    const conversation = conversations?.find((c) => c._id === conversationId);
-
-    const users = useQuery(api.users.getAllUsers, currentClerkId ? { currentClerkId } : "skip");
-
-    const [newMessage, setNewMessage] = useState("");
-    const sendMessage = useMutation(api.messages.sendMessage);
-    const markAllAsSeen = useMutation(api.messages.markAllAsSeen);
-    const setTyping = useMutation(api.typing.setTyping);
-    const typingUsers = useQuery(api.typing.getTypingUsers, {
-        conversationId: conversationId as any,
-    });
-
+    const [message, setMessage] = useState("");
+    const [isTyping, setIsTyping] = useState(false);
+    const [showMembers, setShowMembers] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [showScrollButton, setShowScrollButton] = useState(false);
-    const [isCalling, setIsCalling] = useState(false);
+
+    const convId = conversationId as Id<"conversations">;
+
+    const messages = useQuery(api.messages.getMessages, { conversationId: convId });
+    const conversation = useQuery(api.conversations.getConversationById, { conversationId: convId });
+    const sendMessage = useMutation(api.messages.sendMessage);
+    const setTyping = useMutation(api.typing.setTyping);
+
+    const users = useQuery(api.users.getAllUsers, user?.id ? { currentClerkId: user.id } : "skip");
+    const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
+
+    const typingUsers = useQuery(api.typing.getTypingUsers, { conversationId: convId });
+
+    const otherUser = !conversation?.isGroup ? users?.find((u) => conversation?.members.includes(u._id)) : null;
+    const otherUserStatus = useQuery(api.statuses.getStatusByUserId, otherUser?._id && user?.id ? { userId: otherUser._id as any, currentClerkId: user.id } : "skip");
+    const [viewingStatus, setViewingStatus] = useState<any>(null);
+    const [activeCall, setActiveCall] = useState(false);
+
+    const isAllStatusSeen = currentUser?.lastSeenStatus && otherUserStatus?.items.every((item: any) => item.createdAt <= currentUser.lastSeenStatus!);
+    const hasUnreadStatus = otherUserStatus && !isAllStatusSeen;
 
     useEffect(() => {
         if (scrollRef.current) {
-            const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-            if (scrollHeight - scrollTop - clientHeight < 100) {
-                scrollToBottom();
-            } else {
-                setShowScrollButton(true);
-            }
+            scrollRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages]);
 
-    useEffect(() => {
-        if (messages && messages.length > 0 && currentClerkId) {
-            const hasUnread = messages.some((m) => !m.seen && m.senderId !== currentClerkId);
-            // We will just call markAllAsSeen. The backend checks senderId !== currentUser._id
-            // but we wait till messages load.
-            markAllAsSeen({
-                conversationId: conversationId as any,
-                currentClerkId,
-            });
-        }
-    }, [messages, currentClerkId, conversationId, markAllAsSeen]);
-
-    const scrollToBottom = () => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-            setShowScrollButton(false);
-        }
-    };
-
-    const handleScroll = (e: any) => {
-        const { scrollTop, scrollHeight, clientHeight } = e.target;
-        if (scrollHeight - scrollTop - clientHeight < 50) {
-            setShowScrollButton(false);
-        } else {
-            setShowScrollButton(true);
-        }
-    };
-
-    if (!conversation || !users) return null;
-
-    const otherUser = users.find((u) => conversation.members.includes(u._id));
-    if (!otherUser) return null;
-
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !currentClerkId) return;
+        if (!message.trim() || !user || !conversationId) return;
 
-        await sendMessage({
-            conversationId: conversationId as any,
-            content: newMessage,
-            currentClerkId,
-        });
-        setNewMessage("");
-        setTyping({
-            conversationId: conversationId as any,
-            currentClerkId,
-            isTyping: false,
-        });
-        scrollToBottom();
+        try {
+            await sendMessage({
+                conversationId: convId,
+                currentClerkId: user.id,
+                content: message,
+            });
+            setMessage("");
+            await setTyping({ conversationId: convId, currentClerkId: user.id, isTyping: false });
+        } catch (error) {
+            toast.error("Failed to send message");
+        }
     };
 
     const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewMessage(e.target.value);
-        if (!currentClerkId) return;
-
-        setTyping({
-            conversationId: conversationId as any,
-            currentClerkId,
-            isTyping: e.target.value.length > 0,
-        });
+        setMessage(e.target.value);
+        if (!isTyping && user) {
+            setIsTyping(true);
+            setTyping({ conversationId: convId, currentClerkId: user.id, isTyping: true });
+            setTimeout(() => {
+                setIsTyping(false);
+                setTyping({ conversationId: convId, currentClerkId: user.id, isTyping: false });
+            }, 3000);
+        }
     };
 
-    const isOtherUserTyping = typingUsers?.some((t) => t.userId === otherUser._id && t.isTyping);
+    if (!conversation || !user) return (
+        <div className="flex-1 flex items-center justify-center bg-background/50 backdrop-blur-3xl">
+            <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin" />
+        </div>
+    );
+
+    const conversationTitle = conversation.isGroup ? conversation.groupName : otherUser?.name;
+    const isOnline = !conversation.isGroup && users?.find(u => u._id === otherUser?._id)?.isOnline;
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-white relative">
-            <div className="flex items-center justify-between p-4 border-b shrink-0">
-                <div className="flex items-center gap-3">
-                    <img src={otherUser.avatarUrl} alt={otherUser.name} className="w-10 h-10 rounded-full" />
-                    <div>
-                        <h2 className="font-semibold">{otherUser.name}</h2>
-                        <PresenceText userId={otherUser._id} isTyping={isOtherUserTyping} />
+        <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
+            {/* Header */}
+            <div
+                className="glass-silver h-24 md:h-28 flex items-center justify-between px-4 md:px-8 z-30 border-b border-white/10 mx-2 md:mx-4 mt-2 md:mt-4 rounded-[2.5rem] shadow-2xl transition-all"
+                style={{ paddingTop: 'env(safe-area-inset-top)' }}
+            >
+                <div className="flex items-center gap-2 md:gap-4 flex-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="md:hidden h-10 w-10 glass rounded-xl text-white mr-1"
+                        onClick={() => window.history.back()}
+                    >
+                        <ChevronLeft className="w-6 h-6" />
+                    </Button>
+                    <div className="flex items-center gap-3 md:gap-4 cursor-pointer group flex-1 min-w-0" onClick={() => conversation.isGroup ? setShowMembers(true) : setSelectedUser(otherUser)}>
+                        <div className="relative shrink-0" onClick={(e) => { if (!conversation.isGroup && otherUserStatus?.items.length) { e.stopPropagation(); setViewingStatus(otherUserStatus); } }}>
+                            <div className={clsx(
+                                "p-0.5 rounded-full transition-all duration-700",
+                                hasUnreadStatus ? "ring-2 ring-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]" : "ring-0"
+                            )}>
+                                <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-white/10 group-hover:border-white/30 transition-all shadow-xl">
+                                    <AvatarImage src={conversation.isGroup ? undefined : otherUser?.avatarUrl} className="object-cover" />
+                                    <AvatarFallback className="bg-zinc-900 text-white font-black italic">
+                                        {conversation.isGroup ? <UsersIcon className="w-6 h-6" /> : otherUser?.name?.[0]}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
+                            {!conversation.isGroup && (
+                                <div className={clsx(
+                                    "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-[2.5px] border-[#0c0c0c] shadow-2xl transition-all duration-700",
+                                    isOnline ? "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]" : "bg-zinc-800"
+                                )}>
+                                    {isOnline && <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />}
+                                </div>
+                            )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <h2 className="text-lg md:text-xl font-black italic uppercase tracking-tighter vibe-gradient truncate leading-none mb-1">
+                                {conversationTitle}
+                            </h2>
+                            <div className="flex items-center gap-1.5">
+                                <p className={clsx(
+                                    "text-[9px] font-black uppercase tracking-[0.2em] italic truncate",
+                                    isOnline ? "text-emerald-500/80" : "text-zinc-600"
+                                )}>
+                                    {conversation.isGroup ? `${conversation.members?.length} Squad Members` : (isOnline ? "Active Profile" : "Offline Trace")}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button
-                    onClick={() => setIsCalling(true)}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition"
-                    title="Start Video Call"
-                >
-                    <Video className="w-6 h-6" />
-                </button>
+
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 md:h-12 md:w-12 glass rounded-[1.2rem] text-zinc-500 hover:text-white border-white/5 shrink-0"
+                        onClick={() => {
+                            if (!otherUser) {
+                                toast.error("Wait for users to load");
+                                return;
+                            }
+                            setActiveCall(true);
+                        }}
+                    >
+                        <Video className="w-5 h-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 glass rounded-[1.2rem] text-zinc-500 hover:text-white border-white/5 shrink-0">
+                        <MoreVertical className="w-5 h-5" />
+                    </Button>
+                </div>
             </div>
 
-            <div
-                ref={scrollRef}
-                onScroll={handleScroll}
-                className="flex-1 overflow-y-auto p-4 space-y-4"
-                style={{ scrollBehavior: "smooth" }}
-            >
-                {messages?.length === 0 ? (
-                    <div className="flex h-full items-center justify-center text-gray-500">
-                        Send your first message to {otherUser.name}
+            {/* Messages */}
+            <ScrollArea className="flex-1 px-4 md:px-8 py-8 relative">
+                <div className="max-w-5xl mx-auto space-y-6 pb-32 md:pb-40">
+                    <div className="flex flex-col items-center justify-center py-20 opacity-10">
+                        <Sparkles className="w-16 h-16 text-white mb-4" />
+                        <p className="text-xs font-black uppercase tracking-[0.5em] text-white italic text-center">Beginning of the connection</p>
                     </div>
-                ) : (
-                    messages?.map((m) => (
-                        <MessageBubble key={m._id} message={m} otherUser={otherUser} />
-                    ))
-                )}
-            </div>
+                    {messages?.map((m, i) => (
+                        <MessageBubble
+                            key={m._id}
+                            message={m}
+                            isMe={m.senderId === user.id}
+                            showAvatar={i === 0 || messages[i - 1].senderId !== m.senderId}
+                            senderName={users?.find(u => u._id === m.senderId)?.name}
+                            senderAvatar={users?.find(u => u._id === m.senderId)?.avatarUrl}
+                        />
+                    ))}
+                    <div ref={scrollRef} />
+                </div>
+            </ScrollArea>
 
-            {showScrollButton && (
-                <button
-                    onClick={scrollToBottom}
-                    className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-blue-600 text-white rounded-full p-2 shadow-lg hover:bg-blue-700 transition"
-                >
-                    <ArrowDown className="w-4 h-4" />
-                </button>
+            {/* Typing Indicator Overlay */}
+            {typingUsers && typingUsers.length > 0 && (
+                <div className="absolute bottom-36 md:bottom-32 left-6 md:left-12 z-20 animate-in slide-in-from-bottom-4">
+                    <div className="glass px-4 py-2 rounded-full flex items-center gap-3 border-white/5 shadow-2xl">
+                        <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
+                        </div>
+                        <span className="text-[9px] font-black text-white italic uppercase tracking-widest">
+                            {typingUsers.length === 1 ? 'Message forming...' : 'Multiple messages forming...'}
+                        </span>
+                    </div>
+                </div>
             )}
 
-            <div className="p-4 bg-white border-t shrink-0">
-                <form onSubmit={handleSend} className="flex gap-2">
-                    <Input
-                        value={newMessage}
-                        onChange={handleTyping}
-                        placeholder="Type a message..."
-                        className="flex-1 rounded-full bg-gray-100 border-none focus-visible:ring-1 focus-visible:ring-gray-300 px-4"
-                    />
-                    <Button
-                        type="submit"
-                        size="icon"
-                        className="rounded-full bg-blue-600 hover:bg-blue-700 text-white"
-                        disabled={!newMessage.trim()}
-                    >
-                        <Send className="w-4 h-4" />
-                    </Button>
+            {/* Input Area */}
+            <div
+                className="absolute left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-[#050505] to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-8 md:pb-8"
+            >
+                <form onSubmit={handleSend} className="max-w-5xl mx-auto relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-white/0 via-white/10 to-white/0 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-1000" />
+                    <div className="glass-grey flex items-center gap-2 md:gap-4 p-2 md:p-3 rounded-[2.5rem] border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.9)]">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-12 w-12 glass rounded-2xl text-zinc-500 hover:text-white hover:bg-white/10 border-white/5 transition-all shrink-0"
+                        >
+                            <Smile className="w-6 h-6" />
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-12 w-12 glass rounded-2xl text-zinc-500 hover:text-white hover:bg-white/10 border-white/5 transition-all h-10 w-10 md:h-12 md:w-12 shrink-0"
+                        >
+                            <ImageIcon className="w-6 h-6" />
+                        </Button>
+                        <input
+                            type="text"
+                            value={message}
+                            onChange={handleTyping}
+                            placeholder="Share your vibe..."
+                            className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-700 focus:ring-0 px-2 font-bold text-sm md:text-base h-12 italic"
+                        />
+                        <Button
+                            type="submit"
+                            disabled={!message.trim()}
+                            className={clsx(
+                                "h-12 w-12 md:h-14 md:w-14 rounded-[1.2rem] transition-all duration-500 flex items-center justify-center outline-none border-none",
+                                message.trim() ? "bg-white text-black scale-105 active:scale-95 shadow-[0_0_20px_white]" : "bg-white/5 text-zinc-800"
+                            )}
+                        >
+                            <Send className={clsx("w-6 h-6 transition-transform", message.trim() && "translate-x-0.5 -translate-y-0.5")} />
+                        </Button>
+                    </div>
                 </form>
             </div>
 
-            {isCalling && (
+            {/* Member List Overlay */}
+            {showMembers && (
+                <div className="absolute inset-0 z-[100] glass-grey backdrop-blur-3xl animate-in fade-in duration-500">
+                    <div className="h-full flex flex-col p-10">
+                        <div className="flex items-center justify-between mb-10">
+                            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Squad List</h2>
+                            <Button onClick={() => setShowMembers(false)} variant="ghost" size="icon" className="h-14 w-14 glass rounded-2xl text-white">
+                                <X className="w-6 h-6" />
+                            </Button>
+                        </div>
+                        <ScrollArea className="flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {users?.filter(u => conversation.members.includes(u._id)).map(u => (
+                                    <div
+                                        key={u._id}
+                                        className="glass-darker p-6 rounded-[2.5rem] border-white/5 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all group"
+                                        onClick={() => { setSelectedUser(u); setShowMembers(false); }}
+                                    >
+                                        <Avatar className="h-16 w-16 border-2 border-white/10 group-hover:border-white/30 transition-all shadow-2xl">
+                                            <AvatarImage src={u.avatarUrl} className="object-cover" />
+                                            <AvatarFallback>{u.name[0]}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="text-xl font-black text-white italic tracking-tight">{u.name}</p>
+                                            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{u.gender}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </div>
+            )}
+
+            {selectedUser && (
+                <UserProfileModal
+                    user={selectedUser}
+                    currentUser={currentUser}
+                    isOpen={!!selectedUser}
+                    onClose={() => setSelectedUser(null)}
+                />
+            )}
+
+            {viewingStatus && (
+                <StatusViewer
+                    user={viewingStatus}
+                    currentClerkId={user?.id || ""}
+                    onClose={() => setViewingStatus(null)}
+                />
+            )}
+
+            {activeCall && otherUser && (
                 <VideoCall
                     isCaller={true}
                     receiverId={otherUser._id}
-                    onClose={() => setIsCalling(false)}
+                    onClose={() => setActiveCall(false)}
                 />
             )}
         </div>
     );
 }
 
-function PresenceText({ userId, isTyping }: { userId: any; isTyping?: boolean }) {
+function PresenceIndicator({ userId }: { userId: any }) {
     const presence = useQuery(api.presence.getPresence, { userId });
-
-    if (isTyping) {
-        return <p className="text-xs text-blue-500 font-medium italic">typing...</p>;
-    }
-
-    if (presence && presence.isOnline) {
-        return <p className="text-xs text-green-500 font-medium">Online</p>;
-    }
-
-    return <p className="text-xs text-gray-400">Offline</p>;
+    if (!presence?.isOnline) return null;
+    return (
+        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-[3px] border-zinc-950 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+    );
 }

@@ -8,6 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Users, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { StatusViewer } from "./StatusViewer";
+import clsx from "clsx";
 
 export function ConversationList({
     onSelectConversation,
@@ -26,21 +30,28 @@ export function ConversationList({
 
     if (conversations === undefined) {
         return (
-            <div className="space-y-4">
-                <Skeleton className="h-16 w-full rounded-lg" />
-                <Skeleton className="h-16 w-full rounded-lg" />
-                <Skeleton className="h-16 w-full rounded-lg" />
+            <div className="space-y-3 p-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <ConversationSkeleton key={i} />
+                ))}
             </div>
         );
     }
 
     if (conversations.length === 0) {
-        return <div className="text-sm text-gray-500 text-center py-4">Start a conversation</div>;
+        return (
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center space-y-3">
+                <div className="w-16 h-16 glass-darker rounded-[2rem] flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 text-gray-700" />
+                </div>
+                <p className="text-gray-500 font-bold italic text-sm tracking-tight">Your inbox is empty. Start a vibe.</p>
+            </div>
+        );
     }
 
     return (
         <ScrollArea className="h-full flex-1">
-            <div className="space-y-1 pr-4">
+            <div className="space-y-3 p-4 pb-40 md:pb-0 custom-scrollbar">
                 {conversations.map((c) => (
                     <ConversationItem
                         key={c._id}
@@ -54,63 +65,162 @@ export function ConversationList({
     );
 }
 
-function ConversationItem({ conversation, isActive, onSelect }: any) {
-    const { user } = useUser();
-    const clerkUser = user;
-
-    // Find the other user in the conversation
-    const otherUserId = conversation.members.find(
-        (id: any) => id !== clerkUser?.id // Wait, clerk user id is string, db user ID is custom. 
-        // We need the other user's full details. Better to create a React component that fetches the other user's details.
+function ConversationSkeleton() {
+    return (
+        <div className="flex items-center gap-4 p-5 rounded-[2.5rem] glass-silver border-white/5 opacity-50">
+            <Skeleton className="h-16 w-16 rounded-[1.5rem] shrink-0" />
+            <div className="flex-1 space-y-3 min-w-0">
+                <div className="flex justify-between items-center gap-4">
+                    <Skeleton className="h-5 w-32 rounded-lg" />
+                    <Skeleton className="h-3 w-10 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full rounded-lg" />
+            </div>
+        </div>
     );
+}
 
-    // Note: we'll fetch the other user.
-    // We can just rely on the fact we need to find the other user's _id.
+function ConversationItem({ conversation, isActive, onSelect }: any) {
     return <ConversationUserWrapper conversation={conversation} isActive={isActive} onSelect={onSelect} />;
+}
+
+function UserStatus({ userId }: { userId: string }) {
+    const presence = useQuery(api.presence.getPresence, { userId: userId as any });
+    const isOnline = presence?.isOnline;
+
+    return (
+        <div className={clsx(
+            "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-[3px] border-[#0c0c0c] shadow-2xl transition-all duration-700",
+            isOnline ? "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]" : "bg-zinc-800"
+        )}>
+            {isOnline && (
+                <>
+                    <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />
+                    <div className="absolute -inset-1 rounded-full bg-emerald-500/10 blur-sm" />
+                </>
+            )}
+        </div>
+    );
 }
 
 function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
     const { user } = useUser();
+    const isGroup = conversation.isGroup;
     const users = useQuery(api.users.getAllUsers, user?.id ? { currentClerkId: user.id } : "skip");
     const messages = useQuery(api.messages.getMessages, { conversationId: conversation._id });
+    const otherUser = !isGroup && users ? users.find((u) => conversation.members.includes(u._id)) : null;
+    const presence = !isGroup && otherUser ? useQuery(api.presence.getPresence, { userId: otherUser._id }) : null;
 
-    if (!users) return <Skeleton className="h-16 w-full rounded-lg mb-1" />;
+    const otherUserStatus = useQuery(api.statuses.getStatusByUserId, otherUser?._id && user?.id ? { userId: otherUser._id as any, currentClerkId: user.id } : "skip");
+    const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
+    const [viewingStatus, setViewingStatus] = useState<any>(null);
 
-    const otherUser = users.find((u) => conversation.members.includes(u._id));
-
-    if (!otherUser) return null;
-
-    const unreadCount = messages ? messages.filter((m) => !m.seen && m.senderId === otherUser._id).length : 0;
-
-    return (
-        <div
-            onClick={onSelect}
-            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${isActive ? "bg-gray-100" : "hover:bg-gray-50"
-                }`}
-        >
-            <Avatar className="h-12 w-12">
-                <AvatarImage src={otherUser.avatarUrl} alt={otherUser.name} />
-                <AvatarFallback>{otherUser.name[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 overflow-hidden">
-                <div className="flex justify-between items-center mb-1">
-                    <p className="text-sm font-semibold truncate">{otherUser.name}</p>
-                    <span className="text-xs text-gray-400">
-                        {formatDate(conversation.updatedAt)}
-                    </span>
-                </div>
-                <div className="flex justify-between items-center">
-                    <p className="text-xs text-gray-500 truncate h-4 pr-2 flex-1">
-                        {conversation.lastMessage || "Started a conversation"}
-                    </p>
-                    {unreadCount > 0 && (
-                        <Badge variant="default" className="bg-blue-600 rounded-full shrink-0">
-                            {unreadCount}
-                        </Badge>
-                    )}
-                </div>
+    if (!users || (otherUser === undefined && !isGroup)) return (
+        <div className="flex items-center gap-4 p-4 rounded-[2rem] bg-white/5 animate-pulse mb-3">
+            <Skeleton className="h-14 w-14 rounded-2xl bg-white/5" />
+            <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/3 bg-white/10 rounded-full" />
+                <Skeleton className="h-3 w-1/2 bg-white/5 rounded-full" />
             </div>
         </div>
+    );
+
+    if (!isGroup && !otherUser) return null;
+
+    const unreadCount = messages ? messages.filter((m) => !m.seen && (isGroup ? m.senderId !== user?.id : m.senderId === otherUser?._id)).length : 0;
+    const isOnline = presence?.isOnline;
+    const isAllStatusSeen = currentUser?.lastSeenStatus && otherUserStatus?.items.every((item: any) => item.createdAt <= currentUser.lastSeenStatus!);
+    const hasUnreadStatus = otherUserStatus && !isAllStatusSeen;
+
+    return (
+        <>
+            <div
+                onClick={onSelect}
+                className={clsx(
+                    "group flex items-center gap-4 p-4 rounded-[2.2rem] cursor-pointer transition-all duration-500 active:scale-95 border mb-1",
+                    isActive
+                        ? "glass-silver border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] scale-[1.02] z-10"
+                        : "bg-transparent border-transparent hover:bg-white/5 hover:border-white/5"
+                )}
+            >
+                <div className="relative">
+                    <div
+                        className={clsx(
+                            "relative p-0.5 rounded-[1.6rem] transition-all duration-700",
+                            hasUnreadStatus ? "ring-2 ring-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "ring-1 ring-white/5"
+                        )}
+                        onClick={(e) => {
+                            if (otherUserStatus?.items.length) {
+                                e.stopPropagation();
+                                setViewingStatus(otherUserStatus);
+                            }
+                        }}
+                    >
+                        <Avatar className={clsx(
+                            "h-15 w-15 rounded-[1.4rem] border-2 transition-all duration-500 shadow-2xl",
+                            isActive ? "border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "border-white/5 group-hover:border-white/20 transition-transform group-hover:scale-105"
+                        )}>
+                            <AvatarImage
+                                src={isGroup ? undefined : otherUser?.avatarUrl}
+                                alt={isGroup ? conversation.groupName : otherUser?.name}
+                                className="object-cover"
+                            />
+                            <AvatarFallback className={clsx(
+                                "rounded-[1.4rem] font-black italic",
+                                isGroup ? "bg-white/10 text-white" : "bg-zinc-900 text-zinc-600"
+                            )}>
+                                {isGroup ? <Users className="w-6 h-6" /> : otherUser?.name?.[0] || "?"}
+                            </AvatarFallback>
+                        </Avatar>
+                    </div>
+                    {!isGroup && otherUser && <UserStatus userId={otherUser._id} />}
+                </div>
+
+                <div className="flex-1 overflow-hidden">
+                    <div className="flex justify-between items-baseline mb-1">
+                        <p className={clsx(
+                            "text-lg tracking-tighter truncate italic",
+                            isActive ? 'font-black vibe-gradient scale-105 origin-left duration-700' : 'font-bold text-zinc-200 group-hover:text-white'
+                        )}>
+                            {isGroup ? conversation.groupName : otherUser?.name}
+                        </p>
+                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em] italic ml-2 shrink-0">
+                            {formatDate(conversation.updatedAt)}
+                        </span>
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
+                            {isOnline && !isGroup && (
+                                <span className="hidden xs:inline-flex text-[8px] font-black text-emerald-500/60 uppercase tracking-widest italic animate-pulse">
+                                    Vibing
+                                </span>
+                            )}
+                            <p className={clsx(
+                                "text-[13px] truncate h-5 flex-1 leading-relaxed italic transition-all",
+                                unreadCount > 0 ? "text-white font-black" : "text-zinc-500 font-bold group-hover:text-zinc-400"
+                            )}>
+                                {isGroup && conversation.lastMessage ? (
+                                    <span className="opacity-60">Group Vibe Update</span>
+                                ) : (conversation.lastMessage || (isGroup ? "Create legend" : "Start the vibe"))}
+                            </p>
+                        </div>
+                        {unreadCount > 0 && (
+                            <div className="bg-white text-black text-[10px] font-black h-5 min-w-[1.25rem] px-1.5 rounded-full flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-bounce-subtle">
+                                {unreadCount}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {viewingStatus && (
+                <StatusViewer
+                    user={viewingStatus}
+                    currentClerkId={user?.id || ""}
+                    onClose={() => setViewingStatus(null)}
+                />
+            )}
+        </>
     );
 }
 
@@ -123,12 +233,20 @@ function formatDate(timestamp: number) {
         date.getMonth() === now.getMonth() &&
         date.getFullYear() === now.getFullYear()
     ) {
-        return format(date, "h:mm a");
+        return format(date, "HH:mm");
     }
 
     if (date.getFullYear() === now.getFullYear()) {
-        return format(date, "MMM d, h:mm a");
+        return format(date, "MMM d");
     }
 
-    return format(date, "MMM d, yyyy, h:mm a");
+    return format(date, "MMM yyyy");
+}
+
+function PresenceIndicator({ userId }: { userId: any }) {
+    const presence = useQuery(api.presence.getPresence, { userId });
+    if (!presence?.isOnline) return null;
+    return (
+        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-[3px] border-background shadow-2xl" />
+    );
 }
