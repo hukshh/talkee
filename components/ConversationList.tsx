@@ -51,7 +51,7 @@ export function ConversationList({
 
     return (
         <ScrollArea className="h-full flex-1">
-            <div className="space-y-3 p-4 pb-40 md:pb-0 custom-scrollbar">
+            <div className="space-y-1.5 p-3 pb-40 md:pb-0 custom-scrollbar">
                 {conversations.map((c) => (
                     <ConversationItem
                         key={c._id}
@@ -67,8 +67,8 @@ export function ConversationList({
 
 function ConversationSkeleton() {
     return (
-        <div className="flex items-center gap-4 p-5 rounded-[2.5rem] glass-silver border-white/5 opacity-50">
-            <Skeleton className="h-16 w-16 rounded-[1.5rem] shrink-0" />
+        <div className="flex items-center gap-3 p-4 rounded-2xl glass-silver opacity-50">
+            <Skeleton className="h-13 w-13 rounded-2xl shrink-0" />
             <div className="flex-1 space-y-3 min-w-0">
                 <div className="flex justify-between items-center gap-4">
                     <Skeleton className="h-5 w-32 rounded-lg" />
@@ -109,7 +109,7 @@ function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
     const users = useQuery(api.users.getAllUsers, user?.id ? { currentClerkId: user.id } : "skip");
     const messages = useQuery(api.messages.getMessages, { conversationId: conversation._id });
     const otherUser = !isGroup && users ? users.find((u) => conversation.members.includes(u._id)) : null;
-    const presence = !isGroup && otherUser ? useQuery(api.presence.getPresence, { userId: otherUser._id }) : null;
+    const presence = useQuery(api.presence.getPresence, !isGroup && otherUser ? { userId: otherUser._id as any } : "skip");
 
     const otherUserStatus = useQuery(api.statuses.getStatusByUserId, otherUser?._id && user?.id ? { userId: otherUser._id as any, currentClerkId: user.id } : "skip");
     const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
@@ -137,17 +137,17 @@ function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
             <div
                 onClick={onSelect}
                 className={clsx(
-                    "group flex items-center gap-4 p-4 rounded-[2.2rem] cursor-pointer transition-all duration-500 active:scale-95 border mb-1",
+                    "group flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer transition-all duration-300 active:scale-[0.97] border",
                     isActive
-                        ? "glass-silver border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] scale-[1.02] z-10"
-                        : "bg-transparent border-transparent hover:bg-white/5 hover:border-white/5"
+                        ? "glass-silver border-white/[0.12] shadow-lg"
+                        : "bg-transparent border-transparent hover:bg-white/[0.03]"
                 )}
             >
                 <div className="relative">
                     <div
                         className={clsx(
-                            "relative p-0.5 rounded-[1.6rem] transition-all duration-700",
-                            hasUnreadStatus ? "ring-2 ring-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "ring-1 ring-white/5"
+                            "relative p-0.5 rounded-2xl transition-all duration-500",
+                            hasUnreadStatus ? "ring-2 ring-emerald-500/70" : ""
                         )}
                         onClick={(e) => {
                             if (otherUserStatus?.items.length) {
@@ -157,8 +157,8 @@ function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
                         }}
                     >
                         <Avatar className={clsx(
-                            "h-15 w-15 rounded-[1.4rem] border-2 transition-all duration-500 shadow-2xl",
-                            isActive ? "border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "border-white/5 group-hover:border-white/20 transition-transform group-hover:scale-105"
+                            "h-13 w-13 rounded-2xl border-2 transition-all duration-300 shadow-lg",
+                            isActive ? "border-white/20" : "border-white/[0.05] group-hover:border-white/10"
                         )}>
                             <AvatarImage
                                 src={isGroup ? undefined : otherUser?.avatarUrl}
@@ -166,8 +166,8 @@ function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
                                 className="object-cover"
                             />
                             <AvatarFallback className={clsx(
-                                "rounded-[1.4rem] font-black italic",
-                                isGroup ? "bg-white/10 text-white" : "bg-zinc-900 text-zinc-600"
+                                "rounded-2xl font-bold",
+                                isGroup ? "bg-white/[0.06] text-zinc-400" : "bg-zinc-900 text-zinc-500"
                             )}>
                                 {isGroup ? <Users className="w-6 h-6" /> : otherUser?.name?.[0] || "?"}
                             </AvatarFallback>
@@ -179,25 +179,25 @@ function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
                 <div className="flex-1 overflow-hidden">
                     <div className="flex justify-between items-baseline mb-1">
                         <p className={clsx(
-                            "text-lg tracking-tighter truncate italic",
-                            isActive ? 'font-black vibe-gradient scale-105 origin-left duration-700' : 'font-bold text-zinc-200 group-hover:text-white'
+                            "text-[15px] tracking-tight truncate",
+                            isActive ? 'font-bold text-white' : 'font-semibold text-zinc-200 group-hover:text-white'
                         )}>
                             {isGroup ? conversation.groupName : otherUser?.name}
                         </p>
-                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em] italic ml-2 shrink-0">
+                        <span className="text-[10px] font-medium text-zinc-600 ml-2 shrink-0">
                             {formatDate(conversation.updatedAt)}
                         </span>
                     </div>
                     <div className="flex justify-between items-center gap-2">
                         <div className="flex-1 min-w-0 flex items-center gap-2">
                             {isOnline && !isGroup && (
-                                <span className="hidden xs:inline-flex text-[8px] font-black text-emerald-500/60 uppercase tracking-widest italic animate-pulse">
-                                    Vibing
+                                <span className="hidden xs:inline-flex text-[8px] font-medium text-emerald-500/60 uppercase tracking-wider animate-pulse">
+                                    Online
                                 </span>
                             )}
                             <p className={clsx(
-                                "text-[13px] truncate h-5 flex-1 leading-relaxed italic transition-all",
-                                unreadCount > 0 ? "text-white font-black" : "text-zinc-500 font-bold group-hover:text-zinc-400"
+                                "text-[13px] truncate h-5 flex-1 leading-relaxed transition-colors",
+                                unreadCount > 0 ? "text-zinc-200 font-semibold" : "text-zinc-600 font-normal group-hover:text-zinc-500"
                             )}>
                                 {isGroup && conversation.lastMessage ? (
                                     <span className="opacity-60">Group Vibe Update</span>
@@ -205,7 +205,7 @@ function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
                             </p>
                         </div>
                         {unreadCount > 0 && (
-                            <div className="bg-white text-black text-[10px] font-black h-5 min-w-[1.25rem] px-1.5 rounded-full flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-bounce-subtle">
+                            <div className="bg-white text-black text-[10px] font-bold h-5 min-w-[1.25rem] px-1.5 rounded-full flex items-center justify-center shrink-0 shadow-md">
                                 {unreadCount}
                             </div>
                         )}

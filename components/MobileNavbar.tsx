@@ -26,20 +26,20 @@ export function MobileNavbar({
     };
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-[100] md:hidden px-6 pb-[env(safe-area-inset-bottom,20px)] pt-4 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none">
-            <div className="max-w-md mx-auto h-18 rounded-[2.5rem] bg-[#0c0c0c]/80 backdrop-blur-[40px] flex items-center justify-around px-4 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] pointer-events-auto transition-all duration-700">
+        <div className="fixed inset-x-0 bottom-0 z-[100] md:hidden px-5 pb-[env(safe-area-inset-bottom,16px)] pt-3 bg-gradient-to-t from-[#080808] via-[#080808]/60 to-transparent pointer-events-none">
+            <div className="max-w-sm mx-auto h-16 rounded-2xl bg-[#0e0e0e]/90 backdrop-blur-2xl flex items-center justify-around px-3 border border-white/[0.06] shadow-xl pointer-events-auto transition-all duration-500">
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleTabClick("chats")}
                     className={clsx(
-                        "rounded-[1.2rem] h-12 w-12 transition-all duration-500 relative group",
-                        activeTab === "chats" && pathname === "/" ? "text-white scale-110" : "text-zinc-600 hover:text-zinc-400"
+                        "rounded-xl h-11 w-11 transition-all duration-300 relative group",
+                        activeTab === "chats" && pathname === "/" ? "text-white" : "text-zinc-600 hover:text-zinc-400"
                     )}
                 >
                     <MessageSquare className="w-5 h-5 transition-transform group-active:scale-75" />
                     {activeTab === "chats" && pathname === "/" && (
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white] animate-pulse" />
+                        <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full" />
                     )}
                 </Button>
 
@@ -48,13 +48,13 @@ export function MobileNavbar({
                     size="icon"
                     onClick={() => handleTabClick("discover")}
                     className={clsx(
-                        "rounded-[1.2rem] h-12 w-12 transition-all duration-500 relative group",
-                        activeTab === "discover" && pathname === "/" ? "text-white scale-110" : "text-zinc-600 hover:text-zinc-400"
+                        "rounded-xl h-11 w-11 transition-all duration-300 relative group",
+                        activeTab === "discover" && pathname === "/" ? "text-white" : "text-zinc-600 hover:text-zinc-400"
                     )}
                 >
                     <Search className="w-5 h-5 transition-transform group-active:scale-75" />
                     {activeTab === "discover" && pathname === "/" && (
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white] animate-pulse" />
+                        <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full" />
                     )}
                 </Button>
 
@@ -63,19 +63,19 @@ export function MobileNavbar({
                     size="icon"
                     onClick={() => handleTabClick("wallet")}
                     className={clsx(
-                        "rounded-[1.2rem] h-12 w-12 transition-all duration-500 relative group",
-                        activeTab === "wallet" && pathname === "/" ? "text-white scale-110" : "text-zinc-600 hover:text-zinc-400"
+                        "rounded-xl h-11 w-11 transition-all duration-300 relative group",
+                        activeTab === "wallet" && pathname === "/" ? "text-white" : "text-zinc-600 hover:text-zinc-400"
                     )}
                 >
                     <Coins className="w-5 h-5 transition-transform group-active:scale-75" />
                     {activeTab === "wallet" && pathname === "/" && (
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white] animate-pulse" />
+                        <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full" />
                     )}
                 </Button>
 
                 <div className={clsx(
-                    "flex items-center justify-center rounded-[1.2rem] h-12 w-12 transition-all duration-500 relative group",
-                    pathname === "/profile" ? "scale-110" : "grayscale opacity-60 hover:grayscale-0 hover:opacity-100"
+                    "flex items-center justify-center rounded-xl h-11 w-11 transition-all duration-300 relative group",
+                    pathname === "/profile" ? "" : "grayscale opacity-60 hover:grayscale-0 hover:opacity-100"
                 )}>
                     {isSignedIn ? (
                         <div className="relative group-active:scale-90 transition-transform duration-300">

@@ -36,14 +36,14 @@ export function MessageBubble({ message, isMe, showAvatar, senderName, senderAva
 
     return (
         <div className={clsx(
-            "group flex items-end gap-3 px-2 w-full animate-in fade-in slide-in-from-bottom-2 duration-300",
+            "group flex items-end gap-2 px-1 w-full animate-in fade-in slide-in-from-bottom-2 duration-300",
             isMe ? "flex-row-reverse" : "flex-row"
         )}>
             {showAvatar && !isMe && (
-                <div className="relative shrink-0 mb-1">
-                    <Avatar className="h-10 w-10 border-2 border-white/10 shadow-2xl transition-transform hover:scale-110">
+                <div className="relative shrink-0 mb-0.5">
+                    <Avatar className="h-8 w-8 border border-white/[0.08] shadow-lg transition-transform hover:scale-105">
                         <AvatarImage src={senderAvatar} className="object-cover" />
-                        <AvatarFallback className="bg-zinc-800 text-white font-black text-xs">{senderName?.[0]}</AvatarFallback>
+                        <AvatarFallback className="bg-zinc-800 text-white font-medium text-xs">{senderName?.[0]}</AvatarFallback>
                     </Avatar>
                 </div>
             )}
@@ -54,7 +54,7 @@ export function MessageBubble({ message, isMe, showAvatar, senderName, senderAva
                 !showAvatar && (isMe ? "mr-13" : "ml-13")
             )}>
                 {showAvatar && !isMe && (
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest italic ml-2 mb-1">
+                    <span className="text-[10px] font-medium text-zinc-500 ml-2 mb-0.5">
                         {senderName}
                     </span>
                 )}
@@ -64,12 +64,12 @@ export function MessageBubble({ message, isMe, showAvatar, senderName, senderAva
                     isMe ? "flex-row-reverse" : "flex-row"
                 )}>
                     <div className={clsx(
-                        "relative px-5 py-3.5 md:px-6 md:py-4 rounded-[1.8rem] md:rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-500 border",
+                        "relative px-4 py-3 md:px-5 md:py-3.5 rounded-2xl shadow-md transition-all duration-300 border",
                         isMe
-                            ? "glass-silver border-white/20 text-white rounded-br-none shadow-[0_0_20px_rgba(255,255,255,0.05)]"
-                            : "glass-darker border-white/5 text-zinc-300 rounded-bl-none"
+                            ? "glass-silver border-white/[0.1] text-white rounded-br-sm"
+                            : "glass-darker border-white/[0.04] text-zinc-300 rounded-bl-sm"
                     )}>
-                        <p className="text-[15px] md:text-base font-bold leading-relaxed tracking-tight selection:bg-white/20 whitespace-pre-wrap break-words italic">
+                        <p className="text-[14px] md:text-[15px] font-normal leading-relaxed tracking-tight whitespace-pre-wrap break-words">
                             {message.content}
                         </p>
 
@@ -77,7 +77,7 @@ export function MessageBubble({ message, isMe, showAvatar, senderName, senderAva
                             "flex items-center gap-2 mt-2",
                             isMe ? "justify-end" : "justify-start"
                         )}>
-                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest italic opacity-60">
+                            <span className="text-[10px] font-medium text-zinc-500">
                                 {format(message._creationTime, "HH:mm")}
                             </span>
                             {isMe && (

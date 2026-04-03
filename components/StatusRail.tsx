@@ -11,6 +11,7 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
     const statuses = useQuery(api.statuses.getStatuses, { currentClerkId });
     const currentUser = useQuery(api.users.getCurrentUser, { currentClerkId });
     const [viewingUser, setViewingUser] = useState<any>(null);
+    const [forceCreate, setForceCreate] = useState(false);
 
     if (!statuses) return null;
 
@@ -25,14 +26,27 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                 onClick={() => setViewingUser(myStatuses || { userId: currentUser?._id, user: currentUser, items: [] })}
             >
                 <div className="relative">
-                    <div className="p-0.5 rounded-[1.8rem] ring-2 ring-white/10 group-hover:ring-white/30 transition-all duration-500 shadow-2xl">
+                    <div
+                        className="p-0.5 rounded-[1.8rem] ring-2 ring-white/10 group-hover:ring-white/30 transition-all duration-500 shadow-2xl"
+                        onClick={() => {
+                            setForceCreate(false);
+                            setViewingUser(myStatuses || { userId: currentUser?._id, user: currentUser, items: [] });
+                        }}
+                    >
                         <img
                             src={currentUser?.avatarUrl}
                             className="w-16 h-16 rounded-[1.6rem] object-cover bg-zinc-900 border-2 border-[#0c0c0c]"
                             alt="My Vibe"
                         />
                     </div>
-                    <div className="absolute -bottom-1 -right-1 bg-white text-black rounded-xl p-1.5 border-2 border-[#0c0c0c] shadow-2xl group-hover:scale-110 transition-transform">
+                    <div
+                        className="absolute -bottom-1 -right-1 bg-white text-black rounded-xl p-1.5 border-2 border-[#0c0c0c] shadow-2xl group-hover:scale-110 transition-transform cursor-pointer"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setForceCreate(true);
+                            setViewingUser({ userId: currentUser?._id, user: currentUser, items: [] });
+                        }}
+                    >
                         <Plus className="w-3.5 h-3.5 stroke-[3]" />
                     </div>
                 </div>
@@ -77,7 +91,11 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                 <StatusViewer
                     user={viewingUser}
                     currentClerkId={currentClerkId}
-                    onClose={() => setViewingUser(null)}
+                    forceCreate={forceCreate}
+                    onClose={() => {
+                        setViewingUser(null);
+                        setForceCreate(false);
+                    }}
                 />
             )}
         </div>

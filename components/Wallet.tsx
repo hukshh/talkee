@@ -137,28 +137,28 @@ export function Wallet() {
     };
 
     return (
-        <div className="h-full w-full p-4 md:p-10 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="h-full w-full p-4 md:p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header / Balance Card */}
-            <div className="max-w-5xl mx-auto space-y-8">
+            <div className="max-w-5xl mx-auto space-y-6">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                     <div className="space-y-2">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 glass-silver rounded-2xl flex items-center justify-center border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                                <CreditCard className="w-5 h-5 text-white" />
+                            <div className="w-9 h-9 glass-silver rounded-xl flex items-center justify-center">
+                                <CreditCard className="w-4 h-4 text-white" />
                             </div>
-                            <h1 className="text-2xl md:text-5xl font-black italic uppercase tracking-tighter vibe-gradient">
-                                My <span className="text-zinc-500 italic opacity-60">Vibe Wallet</span>
+                            <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter vibe-gradient">
+                                My <span className="text-zinc-500 opacity-60">Wallet</span>
                             </h1>
                         </div>
-                        <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] italic px-1">Fuel your global social energy</p>
+                        <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-widest px-1">Fuel your social energy</p>
                     </div>
 
-                    <div className="glass-silver px-8 py-5 rounded-[2.5rem] border-white/20 shadow-2xl flex items-center gap-6 group transition-all duration-700 hover:scale-[1.02]">
+                    <div className="glass-silver px-6 py-4 rounded-2xl shadow-lg flex items-center gap-5 group transition-all duration-500 hover:scale-[1.01]">
                         <div className="space-y-0.5">
-                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest italic leading-none">Available Energy</p>
-                            <p className="text-4xl font-black text-white italic tracking-tighter leading-none">{currentCurrency}</p>
+                            <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider leading-none">Balance</p>
+                            <p className="text-3xl font-black text-white tracking-tighter leading-none">{currentCurrency}</p>
                         </div>
-                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-[0_0_25px_white] group-hover:rotate-[360deg] transition-all duration-1000">
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-[360deg] transition-all duration-1000">
                             <Coins className="w-6 h-6 text-black" />
                         </div>
                     </div>
@@ -167,13 +167,13 @@ export function Wallet() {
 
             {/* Economy Info */}
             <div className="max-w-5xl mx-auto px-2">
-                <div className="glass-grey p-8 rounded-[2.5rem] border-white/5 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
+                <div className="glass-grey p-6 rounded-2xl flex flex-col md:flex-row items-center gap-6 shadow-lg">
                     <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2">
                             <Sparkles className="w-4 h-4 text-white" />
-                            <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Vibe Economy Rules</h3>
+                            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Economy Rules</h3>
                         </div>
-                        <p className="text-zinc-500 text-xs font-bold leading-relaxed italic">
+                        <p className="text-zinc-500 text-xs font-normal leading-relaxed">
                             Keep your energy high by holding coins. Each interaction strengthens your profile visibility and connectivity.
                         </p>
                     </div>

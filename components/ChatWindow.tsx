@@ -92,7 +92,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
         <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
             {/* Header */}
             <div
-                className="glass-silver h-24 md:h-28 flex items-center justify-between px-4 md:px-8 z-30 border-b border-white/10 mx-2 md:mx-4 mt-2 md:mt-4 rounded-[2.5rem] shadow-2xl transition-all"
+                className="glass-silver h-20 md:h-24 flex items-center justify-between px-4 md:px-6 z-30 border-b border-white/[0.08] mx-2 md:mx-4 mt-2 md:mt-3 rounded-2xl shadow-lg transition-all"
                 style={{ paddingTop: 'env(safe-area-inset-top)' }}
             >
                 <div className="flex items-center gap-2 md:gap-4 flex-1">
@@ -110,9 +110,9 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                                 "p-0.5 rounded-full transition-all duration-700",
                                 hasUnreadStatus ? "ring-2 ring-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]" : "ring-0"
                             )}>
-                                <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-white/10 group-hover:border-white/30 transition-all shadow-xl">
+                                <Avatar className="h-10 w-10 md:h-11 md:w-11 border-2 border-white/[0.08] group-hover:border-white/20 transition-all shadow-lg">
                                     <AvatarImage src={conversation.isGroup ? undefined : otherUser?.avatarUrl} className="object-cover" />
-                                    <AvatarFallback className="bg-zinc-900 text-white font-black italic">
+                                    <AvatarFallback className="bg-zinc-900 text-white font-bold">
                                         {conversation.isGroup ? <UsersIcon className="w-6 h-6" /> : otherUser?.name?.[0]}
                                     </AvatarFallback>
                                 </Avatar>
@@ -127,15 +127,15 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                             )}
                         </div>
                         <div className="min-w-0 flex-1">
-                            <h2 className="text-lg md:text-xl font-black italic uppercase tracking-tighter vibe-gradient truncate leading-none mb-1">
+                            <h2 className="text-base md:text-lg font-bold tracking-tight text-white truncate leading-none mb-1">
                                 {conversationTitle}
                             </h2>
                             <div className="flex items-center gap-1.5">
                                 <p className={clsx(
-                                    "text-[9px] font-black uppercase tracking-[0.2em] italic truncate",
+                                    "text-[10px] font-medium uppercase tracking-wider truncate",
                                     isOnline ? "text-emerald-500/80" : "text-zinc-600"
                                 )}>
-                                    {conversation.isGroup ? `${conversation.members?.length} Squad Members` : (isOnline ? "Active Profile" : "Offline Trace")}
+                                    {conversation.isGroup ? `${conversation.members?.length} members` : (isOnline ? "Online" : "Offline")}
                                 </p>
                             </div>
                         </div>
@@ -146,7 +146,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 md:h-12 md:w-12 glass rounded-[1.2rem] text-zinc-500 hover:text-white border-white/5 shrink-0"
+                        className="h-10 w-10 md:h-11 md:w-11 glass rounded-xl text-zinc-500 hover:text-white border-white/[0.05] shrink-0"
                         onClick={() => {
                             if (!otherUser) {
                                 toast.error("Wait for users to load");
@@ -157,18 +157,18 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                     >
                         <Video className="w-5 h-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 glass rounded-[1.2rem] text-zinc-500 hover:text-white border-white/5 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 glass rounded-xl text-zinc-500 hover:text-white border-white/[0.05] shrink-0">
                         <MoreVertical className="w-5 h-5" />
                     </Button>
                 </div>
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 px-4 md:px-8 py-8 relative">
+            <ScrollArea className="flex-1 px-4 md:px-6 py-6 relative">
                 <div className="max-w-5xl mx-auto space-y-6 pb-32 md:pb-40">
                     <div className="flex flex-col items-center justify-center py-20 opacity-10">
                         <Sparkles className="w-16 h-16 text-white mb-4" />
-                        <p className="text-xs font-black uppercase tracking-[0.5em] text-white italic text-center">Beginning of the connection</p>
+                        <p className="text-xs font-medium uppercase tracking-widest text-white/40 text-center">Beginning of the connection</p>
                     </div>
                     {messages?.map((m, i) => (
                         <MessageBubble
@@ -202,16 +202,16 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
 
             {/* Input Area */}
             <div
-                className="absolute left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-[#050505] to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-8 md:pb-8"
+                className="absolute left-0 right-0 bottom-0 z-40 bg-gradient-to-t from-[#080808] via-[#080808]/80 to-transparent p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6 md:pb-6"
             >
                 <form onSubmit={handleSend} className="max-w-5xl mx-auto relative group">
                     <div className="absolute -inset-1 bg-gradient-to-r from-white/0 via-white/10 to-white/0 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-1000" />
-                    <div className="glass-grey flex items-center gap-2 md:gap-4 p-2 md:p-3 rounded-[2.5rem] border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.9)]">
+                    <div className="glass-grey flex items-center gap-2 md:gap-3 p-2 md:p-2.5 rounded-2xl border border-white/[0.1] shadow-xl">
                         <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-12 w-12 glass rounded-2xl text-zinc-500 hover:text-white hover:bg-white/10 border-white/5 transition-all shrink-0"
+                            className="h-10 w-10 glass rounded-xl text-zinc-500 hover:text-white hover:bg-white/[0.06] border-white/[0.04] transition-all shrink-0"
                         >
                             <Smile className="w-6 h-6" />
                         </Button>
@@ -219,7 +219,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-12 w-12 glass rounded-2xl text-zinc-500 hover:text-white hover:bg-white/10 border-white/5 transition-all h-10 w-10 md:h-12 md:w-12 shrink-0"
+                            className="h-10 w-10 glass rounded-xl text-zinc-500 hover:text-white hover:bg-white/[0.06] border-white/[0.04] transition-all shrink-0"
                         >
                             <ImageIcon className="w-6 h-6" />
                         </Button>
@@ -227,15 +227,15 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                             type="text"
                             value={message}
                             onChange={handleTyping}
-                            placeholder="Share your vibe..."
-                            className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-700 focus:ring-0 px-2 font-bold text-sm md:text-base h-12 italic"
+                            placeholder="Type a message..."
+                            className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-2 font-medium text-sm md:text-base h-10"
                         />
                         <Button
                             type="submit"
                             disabled={!message.trim()}
                             className={clsx(
-                                "h-12 w-12 md:h-14 md:w-14 rounded-[1.2rem] transition-all duration-500 flex items-center justify-center outline-none border-none",
-                                message.trim() ? "bg-white text-black scale-105 active:scale-95 shadow-[0_0_20px_white]" : "bg-white/5 text-zinc-800"
+                                "h-10 w-10 md:h-12 md:w-12 rounded-xl transition-all duration-300 flex items-center justify-center outline-none border-none",
+                                message.trim() ? "bg-white text-black active:scale-90 shadow-lg" : "bg-white/[0.05] text-zinc-700"
                             )}
                         >
                             <Send className={clsx("w-6 h-6 transition-transform", message.trim() && "translate-x-0.5 -translate-y-0.5")} />

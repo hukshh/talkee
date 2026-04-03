@@ -16,7 +16,20 @@ export function Preloader({ children }: { children: React.ReactNode }) {
     }, []);
 
     // Show preloader until everything is ready
-    const isLoading = !isMounted || !isClerkLoaded;
+    // We only show the full screen preloader if not mounted to prevent hydration mismatches
+    if (!isMounted) {
+        return (
+            <div className="fixed inset-0 z-[1000] bg-[#050505] flex flex-col items-center justify-center space-y-6">
+                <div className="relative">
+                    <div className="w-24 h-24 bg-white/5 rounded-[2rem] flex items-center justify-center border border-white/10 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                        <Sparkles className="w-12 h-12 text-zinc-900" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const isLoading = !isClerkLoaded;
 
     if (isLoading) {
         return (

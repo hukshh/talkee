@@ -8,15 +8,16 @@ import { Button } from "./ui/button";
 import { toast } from "sonner";
 import clsx from "clsx";
 
-export function StatusViewer({ user, currentClerkId, onClose }: { user: any; currentClerkId: string; onClose: () => void }) {
+export function StatusViewer({ user, currentClerkId, onClose, forceCreate = false }: { user: any; currentClerkId: string; onClose: () => void; forceCreate?: boolean }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
-    const [isConfiguring, setIsConfiguring] = useState(false);
+    const [isConfiguring, setIsConfiguring] = useState(forceCreate || !(user.items && user.items.length > 0));
     const [note, setNote] = useState("");
     const [musicUrl, setMusicUrl] = useState("");
-    const [pendingFile, setPendingFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [musicTitle, setMusicTitle] = useState("");
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const markSeen = useMutation(api.statuses.markStatusSeen);
     const createStatus = useMutation(api.statuses.createStatus);
@@ -26,6 +27,17 @@ export function StatusViewer({ user, currentClerkId, onClose }: { user: any; cur
 
     const hasStatuses = user.items && user.items.length > 0;
     const currentItem = hasStatuses ? user.items[currentIndex] : null;
+
+    const VIBE_PRESETS = [
+        { title: "Neon Phonk", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+        { title: "Midnight Chill", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+        { title: "Electric Desire", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+        { title: "Lofi Vibe", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
+        { title: "Cyber Sunset", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" },
+        { title: "Deep Space", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
+        { title: "Retro Wave", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" },
+        { title: "Alpha Sync", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" },
+    ];
 
     useEffect(() => {
         if (!hasStatuses || isConfiguring) return;
@@ -75,41 +87,47 @@ export function StatusViewer({ user, currentClerkId, onClose }: { user: any; cur
     }, [currentIndex, currentItem, isConfiguring]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setPendingFile(file);
-        setPreviewUrl(URL.createObjectURL(file));
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+        setPendingFiles(files);
         setIsConfiguring(true);
     };
 
     const handleUpload = async () => {
-        if (!pendingFile) return;
+        if (pendingFiles.length === 0) return;
 
         setIsUploading(true);
         try {
-            const postUrl = await generateUploadUrl();
-            const result = await fetch(postUrl, {
-                method: "POST",
-                headers: { "Content-Type": pendingFile.type },
-                body: pendingFile,
-            });
-            const { storageId } = await result.json();
+            for (let i = 0; i < pendingFiles.length; i++) {
+                const file = pendingFiles[i];
+                setUploadProgress(((i) / pendingFiles.length) * 100);
 
-            await createStatus({
-                currentClerkId,
-                mediaUrl: storageId,
-                mediaType: pendingFile.type.startsWith("video") ? "video" : "image",
-                caption: "",
-                note: note.trim() || undefined,
-                musicUrl: musicUrl.trim() || undefined,
-            });
+                const postUrl = await generateUploadUrl();
+                const result = await fetch(postUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": file.type },
+                    body: file,
+                });
+                const { storageId } = await result.json();
 
-            toast.success("Status uploaded!");
+                await createStatus({
+                    currentClerkId,
+                    mediaUrl: storageId,
+                    mediaType: file.type.startsWith("video") ? "video" : "image",
+                    caption: "",
+                    note: note.trim() || undefined,
+                    musicUrl: musicUrl.trim() || undefined,
+                    musicTitle: musicTitle.trim() || undefined,
+                });
+            }
+
+            toast.success(`${pendingFiles.length} Vibe${pendingFiles.length > 1 ? 's' : ''} Broadcasted!`);
             onClose();
         } catch (error) {
-            toast.error("Failed to upload status.");
+            toast.error("Signal Lost. Failed to broadcast vibe.");
         } finally {
             setIsUploading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -191,15 +209,38 @@ export function StatusViewer({ user, currentClerkId, onClose }: { user: any; cur
                             >
                                 {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Capture Signal"}
                             </Button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,video/*" className="hidden" />
+                            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,video/*" multiple className="hidden" />
                         </div>
                     ) : isConfiguring ? (
-                        <div className="absolute inset-0 bg-[#050505]/95 z-[80] flex flex-col p-10 animate-in slide-in-from-bottom duration-500">
-                            <div className="flex-1 flex flex-col items-center justify-center gap-12">
-                                <div className="relative group">
-                                    <div className="absolute -inset-4 bg-white/5 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                                    <img src={previewUrl!} className="max-h-72 w-auto rounded-[3rem] object-contain shadow-2xl border-2 border-white/20 transition-transform duration-700 group-hover:scale-105" alt="Preview" />
+                        <div className="absolute inset-0 bg-[#050505]/95 z-[80] flex flex-col p-10 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500">
+                            <div className="flex flex-col items-center gap-12 pt-10">
+                                <div className="flex gap-4 overflow-x-auto w-full pb-4 scrollbar-hide">
+                                    {pendingFiles.map((file, idx) => (
+                                        <div key={idx} className="relative shrink-0 group">
+                                            <div className="absolute -inset-1 bg-white/10 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="w-24 h-32 glass rounded-2xl overflow-hidden border border-white/10 relative">
+                                                {file.type.startsWith("video") ? (
+                                                    <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                                                        <Video className="w-6 h-6 text-zinc-600" />
+                                                    </div>
+                                                ) : (
+                                                    <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="" />
+                                                )}
+                                                <div className="absolute top-1 right-1 w-5 h-5 glass rounded-full flex items-center justify-center text-[10px] font-bold text-white border-white/10">
+                                                    {idx + 1}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-24 h-32 glass rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-2 text-zinc-700 hover:text-white hover:border-white/20 transition-all shrink-0"
+                                    >
+                                        <Plus className="w-6 h-6" />
+                                        <span className="text-[8px] font-black uppercase tracking-widest italic">Add More</span>
+                                    </button>
                                 </div>
+
                                 <div className="w-full space-y-8">
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] italic ml-1">Manifest Note</label>
@@ -207,27 +248,56 @@ export function StatusViewer({ user, currentClerkId, onClose }: { user: any; cur
                                             value={note}
                                             onChange={(e) => setNote(e.target.value)}
                                             placeholder="What's the frequency?..."
-                                            className="w-full glass text-white border-white/10 rounded-[2rem] px-8 py-6 font-bold placeholder:text-zinc-800 outline-none resize-none h-40 italic text-lg leading-relaxed shadow-inner"
+                                            className="w-full glass text-white border-white/10 rounded-[2rem] px-8 py-6 font-bold placeholder:text-zinc-800 outline-none resize-none h-32 italic text-lg leading-relaxed shadow-inner"
                                         />
                                     </div>
-                                    <div className="space-y-4">
+                                    <div className="space-y-6">
                                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] italic ml-1 flex items-center gap-2">
-                                            <Music className="w-3 h-3" /> Audio Sync URL
+                                            <Music className="w-3 h-3" /> Select Vibe Preset
                                         </label>
-                                        <input
-                                            type="text"
-                                            value={musicUrl}
-                                            onChange={(e) => setMusicUrl(e.target.value)}
-                                            placeholder="Paste .mp3 signal link..."
-                                            className="w-full h-14 glass text-white border-white/10 rounded-2xl px-6 font-bold placeholder:text-zinc-800 italic"
-                                        />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {VIBE_PRESETS.map((vibe) => (
+                                                <button
+                                                    key={vibe.title}
+                                                    onClick={() => {
+                                                        setMusicUrl(vibe.url);
+                                                        setMusicTitle(vibe.title);
+                                                    }}
+                                                    className={clsx(
+                                                        "h-14 rounded-2xl border font-black text-[10px] uppercase tracking-widest italic transition-all flex items-center justify-center gap-2",
+                                                        musicTitle === vibe.title
+                                                            ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)] border-white"
+                                                            : "glass border-white/5 text-zinc-500 hover:text-white hover:border-white/20"
+                                                    )}
+                                                >
+                                                    <Music className="w-3 h-3" />
+                                                    {vibe.title}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex gap-6 mt-10">
+
+                            {isUploading && (
+                                <div className="mt-10 space-y-3 px-4">
+                                    <div className="flex justify-between items-center px-1">
+                                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 italic">Broadcasting to Collective...</p>
+                                        <p className="text-[9px] font-black text-white italic">{Math.round(uploadProgress)}%</p>
+                                    </div>
+                                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-white transition-all duration-300 shadow-[0_0_15px_white]"
+                                            style={{ width: `${uploadProgress}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex gap-6 mt-10 pb-10">
                                 <Button
                                     variant="ghost"
-                                    onClick={() => { setIsConfiguring(false); setPendingFile(null); }}
+                                    onClick={() => { setIsConfiguring(false); setPendingFiles([]); setNote(""); setMusicUrl(""); setMusicTitle(""); }}
                                     className="flex-1 h-20 rounded-[2rem] glass text-zinc-500 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest italic border-white/5 transition-all"
                                 >
                                     Abort
@@ -271,6 +341,22 @@ export function StatusViewer({ user, currentClerkId, onClose }: { user: any; cur
                                         <p className="text-white text-3xl font-black italic text-center leading-tight tracking-tighter uppercase drop-shadow-2xl">
                                             {currentItem.note}
                                         </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Music Tag Overlay */}
+                            {currentItem.musicTitle && (
+                                <div className="absolute bottom-10 left-10 flex items-center gap-3 glass px-6 py-3 rounded-2xl border border-white/10 backdrop-blur-3xl animate-in slide-in-from-bottom-10 duration-700">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-white rounded-full animate-ping opacity-20" />
+                                        <div className="w-8 h-8 glass-silver rounded-xl flex items-center justify-center border border-white/20">
+                                            <Music className="w-4 h-4 text-white animate-bounce-subtle" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black italic uppercase tracking-widest text-white">{currentItem.musicTitle}</p>
+                                        <p className="text-[7px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">Vibe Sync Active</p>
                                     </div>
                                 </div>
                             )}

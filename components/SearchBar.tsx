@@ -16,8 +16,8 @@ export function SearchBar({
                 <Search className="h-4 w-4 text-zinc-500 group-focus-within:text-white transition-colors" />
             </div>
             <Input
-                placeholder="Search vibes..."
-                className="pl-11 h-12 bg-[#0c0c0c]/60 border-white/5 focus-visible:border-white/20 focus-visible:ring-0 focus-visible:bg-[#111111]/80 rounded-2xl text-[13px] font-bold italic tracking-tight placeholder:text-zinc-600 transition-all duration-500 glass-silver shadow-2xl"
+                placeholder="Search..."
+                className="pl-11 h-11 bg-[#0e0e0e]/60 border-white/[0.04] focus-visible:border-white/[0.12] focus-visible:ring-0 focus-visible:bg-[#111111]/80 rounded-xl text-[13px] font-medium tracking-tight placeholder:text-zinc-600 transition-all duration-300 shadow-lg"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
