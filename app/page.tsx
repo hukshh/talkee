@@ -8,12 +8,11 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { Sparkles, ChevronLeft } from "lucide-react";
 
-// Lazy loading heavy components
-const Sidebar = dynamic(() => import("@/components/Sidebar").then((mod) => mod.Sidebar), { ssr: false });
+import { Sidebar } from "@/components/Sidebar";
+import { DesktopNavbar } from "@/components/DesktopNavbar";
+import { DiscoverFeed } from "@/components/DiscoverFeed";
 const ChatWindow = dynamic(() => import("@/components/ChatWindow").then((mod) => mod.ChatWindow), { ssr: false });
-const DiscoverFeed = dynamic(() => import("@/components/DiscoverFeed").then((mod) => mod.DiscoverFeed), { ssr: false });
 const Wallet = dynamic(() => import("@/components/Wallet").then((mod) => mod.Wallet), { ssr: false });
-const DesktopNavbar = dynamic(() => import("@/components/DesktopNavbar").then((mod) => mod.DesktopNavbar), { ssr: false });
 
 import { useNav, MobileTab } from "@/context/NavContext";
 import OnboardingForm from "@/components/OnboardingForm";
@@ -21,6 +20,7 @@ import { MobileNavbar } from "@/components/MobileNavbar";
 
 export default function Home() {
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>();
+  const [hasRecentlyOnboarded, setHasRecentlyOnboarded] = useState(false);
   const { activeTab, setActiveTab } = useNav();
   const { isLoaded, isSignedIn, user } = useUser();
   const currentClerkId = user?.id;
@@ -41,8 +41,15 @@ export default function Home() {
     (currentUser?.fantasy && currentUser.fantasy.length > 0) ||
     (currentUser?.desire && currentUser.desire.length > 0);
 
-  if (currentUser && (!currentUser.birthDate || !currentUser.gender || !currentUser.bio || !hasTags)) {
-    return <main className="flex h-screen w-full bg-[#050505]"><OnboardingForm /></main>;
+  if (!hasRecentlyOnboarded && currentUser && (!currentUser.birthDate || !currentUser.gender || !currentUser.bio || !hasTags)) {
+    return (
+      <main className="flex h-screen w-full bg-[#050505]">
+        <OnboardingForm onComplete={() => {
+          setHasRecentlyOnboarded(true);
+          setActiveTab("chats");
+        }} />
+      </main>
+    );
   }
 
   const handleSelectConversation = (id: string) => {
@@ -64,8 +71,11 @@ export default function Home() {
       {/* Desktop Navbar */}
       <DesktopNavbar />
 
-      {/* Sidebar - Only visible on mobile if on 'chats' tab and no active conversation */}
-      <div className={`md:h-full shrink-0 ${activeConversationId ? "hidden md:block" : (isChatsActive ? "block" : "hidden md:block")}`}>
+      {/* Sidebar - Always visible on desktop, tab-dependent on mobile */}
+      <div className={clsx(
+        "md:h-full shrink-0 transition-all duration-500",
+        activeConversationId ? "hidden md:block" : (isChatsActive ? "block" : "hidden md:block")
+      )}>
         <Sidebar
           activeConversationId={activeConversationId}
           onSelectConversation={handleSelectConversation}
@@ -77,7 +87,10 @@ export default function Home() {
       </div>
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col h-full bg-background relative z-10 ${!activeConversationId && isChatsActive ? "hidden md:flex" : "flex"}`}>
+      <div className={clsx(
+        "flex-1 flex flex-col h-full bg-background relative z-10 transition-all duration-500",
+        !activeConversationId && isChatsActive ? "hidden md:flex" : "flex"
+      )}>
         {isWalletActive ? (
           <div className="flex-1 bg-background/50 backdrop-blur-3xl overflow-y-auto">
             <div className="md:hidden flex items-center p-4 border-b border-white/[0.04] bg-[#080808]/80 backdrop-blur-2xl sticky top-0 z-50" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
@@ -129,6 +142,19 @@ export default function Home() {
             <DiscoverFeed />
             {/* Mobile Nav Spacer */}
             <div className="h-40 md:hidden" />
+          </div>
+        ) : isChatsActive ? (
+          <div className="flex-1 flex flex-col items-center justify-center bg-background/50 backdrop-blur-3xl p-8 text-center space-y-6">
+            <div className="relative group">
+              <div className="absolute -inset-8 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all duration-700" />
+              <div className="relative w-24 h-24 glass-silver rounded-[2rem] flex items-center justify-center border-white/5 shadow-2xl">
+                <Sparkles className="w-12 h-12 text-zinc-600" />
+              </div>
+            </div>
+            <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+              <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Start a <span className="text-zinc-600 text-3xl">Vibe</span></h2>
+              <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.3em] italic">Select a frequency from the sidebar to begin messaging</p>
+            </div>
           </div>
         ) : (
           /* Desktop default view (Discover) */

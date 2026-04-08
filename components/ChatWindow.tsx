@@ -133,7 +133,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                             <div className="flex items-center gap-1.5">
                                 <p className={clsx(
                                     "text-[10px] font-medium uppercase tracking-wider truncate",
-                                    isOnline ? "text-emerald-500/80" : "text-zinc-600"
+                                    isOnline ? "text-emerald-500/80" : "text-zinc-500"
                                 )}>
                                     {conversation.isGroup ? `${conversation.members?.length} members` : (isOnline ? "Online" : "Offline")}
                                 </p>
@@ -146,7 +146,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 md:h-11 md:w-11 glass rounded-xl text-zinc-500 hover:text-white border-white/[0.05] shrink-0"
+                        className="h-10 w-10 md:h-11 md:w-11 glass rounded-xl text-zinc-400 hover:text-white border-white/[0.05] shrink-0"
                         onClick={() => {
                             if (!otherUser) {
                                 toast.error("Wait for users to load");
@@ -157,7 +157,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                     >
                         <Video className="w-5 h-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 glass rounded-xl text-zinc-500 hover:text-white border-white/[0.05] shrink-0">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 glass rounded-xl text-zinc-400 hover:text-white border-white/[0.05] shrink-0">
                         <MoreVertical className="w-5 h-5" />
                     </Button>
                 </div>
@@ -211,7 +211,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10 glass rounded-xl text-zinc-500 hover:text-white hover:bg-white/[0.06] border-white/[0.04] transition-all shrink-0"
+                            className="h-10 w-10 glass rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] border-white/[0.04] transition-all shrink-0"
                         >
                             <Smile className="w-6 h-6" />
                         </Button>
@@ -219,7 +219,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10 glass rounded-xl text-zinc-500 hover:text-white hover:bg-white/[0.06] border-white/[0.04] transition-all shrink-0"
+                            className="h-10 w-10 glass rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] border-white/[0.04] transition-all shrink-0"
                         >
                             <ImageIcon className="w-6 h-6" />
                         </Button>
@@ -228,14 +228,14 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                             value={message}
                             onChange={handleTyping}
                             placeholder="Type a message..."
-                            className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-600 focus:ring-0 px-2 font-medium text-sm md:text-base h-10"
+                            className="flex-1 bg-transparent border-none text-white placeholder:text-zinc-500 focus:ring-0 px-2 font-medium text-sm md:text-base h-10"
                         />
                         <Button
                             type="submit"
                             disabled={!message.trim()}
                             className={clsx(
                                 "h-10 w-10 md:h-12 md:w-12 rounded-xl transition-all duration-300 flex items-center justify-center outline-none border-none",
-                                message.trim() ? "bg-white text-black active:scale-90 shadow-lg" : "bg-white/[0.05] text-zinc-700"
+                                message.trim() ? "bg-white text-black active:scale-90 shadow-lg" : "bg-white/[0.05] text-zinc-500"
                             )}
                         >
                             <Send className={clsx("w-6 h-6 transition-transform", message.trim() && "translate-x-0.5 -translate-y-0.5")} />

@@ -80,7 +80,7 @@ export function DesktopNavbar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="w-12 h-12 glass rounded-2xl text-zinc-600 hover:text-white"
+                            className="w-12 h-12 glass rounded-2xl text-zinc-400 hover:text-white transition-colors"
                             onClick={() => router.push("/login")}
                         >
                             <UserIcon className="w-6 h-6" />
@@ -104,7 +104,7 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode; la
                 "relative w-14 h-14 rounded-2xl transition-all duration-500 group",
                 isActive
                     ? "glass-silver text-white shadow-2xl scale-110 border-white/20"
-                    : "text-zinc-600 hover:text-white hover:bg-white/5 border-transparent"
+                    : "text-zinc-500 hover:text-white hover:bg-white/5 border-transparent"
             )}
         >
             {isActive && (

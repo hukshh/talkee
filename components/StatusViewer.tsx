@@ -167,7 +167,7 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
                         <div>
                             <p className="text-lg font-black italic uppercase tracking-tighter text-white">{user.user.name}</p>
                             {currentItem && (
-                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 italic">
                                     {new Date(currentItem.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Sync Active
                                 </p>
                             )}
@@ -200,7 +200,7 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
                             </div>
                             <div className="space-y-3">
                                 <h3 className="text-4xl font-black italic uppercase tracking-tighter text-white">Broadcast Vibe</h3>
-                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] italic leading-relaxed">manifest your energy to the collective</p>
+                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] italic leading-relaxed">manifest your energy to the collective</p>
                             </div>
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
@@ -237,7 +237,7 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
                                         className="w-24 h-32 glass rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-2 text-zinc-700 hover:text-white hover:border-white/20 transition-all shrink-0"
                                     >
                                         <Plus className="w-6 h-6" />
-                                        <span className="text-[8px] font-black uppercase tracking-widest italic">Add More</span>
+                                        <span className="text-[8px] font-black uppercase tracking-widest italic text-zinc-400">Add More</span>
                                     </button>
                                 </div>
 
@@ -248,7 +248,7 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
                                             value={note}
                                             onChange={(e) => setNote(e.target.value)}
                                             placeholder="What's the frequency?..."
-                                            className="w-full glass text-white border-white/10 rounded-[2rem] px-8 py-6 font-bold placeholder:text-zinc-800 outline-none resize-none h-32 italic text-lg leading-relaxed shadow-inner"
+                                            className="w-full glass text-white border-white/10 rounded-[2rem] px-8 py-6 font-bold placeholder:text-zinc-600 outline-none resize-none h-32 italic text-lg leading-relaxed shadow-inner"
                                         />
                                     </div>
                                     <div className="space-y-6">
@@ -267,7 +267,7 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
                                                         "h-14 rounded-2xl border font-black text-[10px] uppercase tracking-widest italic transition-all flex items-center justify-center gap-2",
                                                         musicTitle === vibe.title
                                                             ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)] border-white"
-                                                            : "glass border-white/5 text-zinc-500 hover:text-white hover:border-white/20"
+                                                            : "glass border-white/5 text-zinc-400 hover:text-white hover:border-white/20"
                                                     )}
                                                 >
                                                     <Music className="w-3 h-3" />

@@ -15,22 +15,19 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
 
     if (!statuses) return null;
 
-    const myStatuses = statuses.find(s => s.userId === currentUser?._id);
+    const myStatuses = statuses.find(s => s.userId.toString() === currentUser?._id?.toString());
     const otherStatuses = statuses.filter(s => s.userId !== currentUser?._id);
 
     return (
         <div className="flex items-center gap-6 py-6 px-4 overflow-x-auto scrollbar-hide border-b border-white/5 bg-transparent">
             {/* My Status */}
-            <div
-                className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer group"
-                onClick={() => setViewingUser(myStatuses || { userId: currentUser?._id, user: currentUser, items: [] })}
-            >
+            <div className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer group">
                 <div className="relative">
                     <div
                         className="p-0.5 rounded-[1.8rem] ring-2 ring-white/10 group-hover:ring-white/30 transition-all duration-500 shadow-2xl"
                         onClick={() => {
                             setForceCreate(false);
-                            setViewingUser(myStatuses || { userId: currentUser?._id, user: currentUser, items: [] });
+                            setViewingUser(myStatuses || { userId: currentUser?._id, user: currentUser, items: Array.isArray(myStatuses?.items) ? myStatuses.items : [] });
                         }}
                     >
                         <img

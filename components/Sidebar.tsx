@@ -60,7 +60,7 @@ export function Sidebar({
                     </div>
                     <div>
                         <p className="text-white font-black italic uppercase tracking-tighter text-lg">Birthday Vibe!</p>
-                        <p className="text-zinc-500 font-bold text-xs leading-tight mt-0.5">{message}</p>
+                        <p className="text-zinc-400 font-bold text-xs leading-tight mt-0.5">{message}</p>
                     </div>
                 </div>
             ), { duration: 10000 });
@@ -137,7 +137,7 @@ export function Sidebar({
                             <div className="flex items-center justify-between px-2">
                                 <div className="flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse" />
-                                    <h2 className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.3em] italic">Active Vibes</h2>
+                                    <h2 className="text-[10px] font-black text-zinc-200 uppercase tracking-[0.3em] italic">Active Vibes</h2>
                                 </div>
                                 <Button
                                     onClick={() => setIsGroupModalOpen(true)}
@@ -162,7 +162,7 @@ export function Sidebar({
                                     onClick={() => handleTabChange("users")}
                                     className={clsx(
                                         "flex-1 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all",
-                                        activeTab === "users" ? "bg-white text-black shadow-xl" : "text-zinc-500 hover:text-white"
+                                        activeTab === "users" ? "bg-white text-black shadow-xl" : "text-zinc-400 hover:text-white"
                                     )}
                                 >
                                     Discover
@@ -198,14 +198,14 @@ export function Sidebar({
                     <div className="hidden md:flex pt-4 border-t border-white/[0.04] items-center justify-between px-1">
                         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push("/profile")}>
                             <div className="w-10 h-10 glass rounded-xl flex items-center justify-center border border-white/5 group-hover:border-white/30 transition-all">
-                                <UserIcon className="w-5 h-5 text-zinc-600 group-hover:text-white transition-all" />
+                                <UserIcon className="w-5 h-5 text-zinc-400 group-hover:text-white transition-all outline-none" />
                             </div>
                             <div>
                                 <p className="text-xs font-black text-white italic uppercase tracking-wider">Profile</p>
-                                <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">Settings</p>
+                                <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Settings</p>
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 glass rounded-xl text-zinc-700 border-white/5 hover:text-white">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 glass rounded-xl text-zinc-400 border-white/5 hover:text-white">
                             <Settings2 className="w-5 h-5" />
                         </Button>
                     </div>

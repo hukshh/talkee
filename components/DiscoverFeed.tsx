@@ -71,7 +71,7 @@ export function DiscoverFeed() {
                                 Discover <span className="text-zinc-500">Vibes</span>
                             </h1>
                         </div>
-                        <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest px-1">Scanning for compatible frequencies</p>
+                        <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest px-1">Scanning for compatible frequencies</p>
                     </div>
 
                     <div className="flex bg-[#0c0c0c]/60 p-1.5 rounded-2xl border border-white/[0.04]">
@@ -79,7 +79,7 @@ export function DiscoverFeed() {
                             onClick={() => setViewMode("grid")}
                             className={clsx(
                                 "flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all",
-                                viewMode === "grid" ? "bg-white text-black shadow-xl" : "text-zinc-600 hover:text-white"
+                                viewMode === "grid" ? "bg-white text-black shadow-xl" : "text-zinc-500 hover:text-white"
                             )}
                         >
                             <LayoutGrid className="w-3.5 h-3.5" /> Grid
@@ -88,7 +88,7 @@ export function DiscoverFeed() {
                             onClick={() => setViewMode("swipe")}
                             className={clsx(
                                 "flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all",
-                                viewMode === "swipe" ? "bg-white text-black shadow-xl" : "text-zinc-600 hover:text-white"
+                                viewMode === "swipe" ? "bg-white text-black shadow-xl" : "text-zinc-500 hover:text-white"
                             )}
                         >
                             <Layers className="w-3.5 h-3.5" /> Match
@@ -99,13 +99,13 @@ export function DiscoverFeed() {
                 <div className="relative group max-w-2xl">
                     <div className="absolute -inset-1 bg-gradient-to-r from-white/0 via-white/5 to-white/0 rounded-[2rem] blur opacity-0 group-hover:opacity-100 transition duration-1000" />
                     <div className="glass-grey flex items-center gap-3 p-2 pl-5 rounded-2xl shadow-lg">
-                        <Search className="w-5 h-5 text-zinc-600" />
+                        <Search className="w-5 h-5 text-zinc-500" />
                         <input
                             type="text"
                             placeholder="Identify name, vibe, or frequency..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-transparent border-none text-white focus:ring-0 flex-1 h-10 font-medium text-sm placeholder:text-zinc-600"
+                            className="bg-transparent border-none text-white focus:ring-0 flex-1 h-10 font-medium text-sm placeholder:text-zinc-500"
                         />
                         <Button className="h-10 px-6 glass-darker text-white rounded-xl border-white/[0.05] hover:bg-white hover:text-black font-bold uppercase tracking-wider text-xs transition-all">
                             Scan
@@ -144,7 +144,7 @@ export function DiscoverFeed() {
                                     ) : (
                                         <div className="glass-darker px-3 py-1.5 rounded-full flex items-center gap-1.5 border-white/5 opacity-60">
                                             <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest italic">Offline</span>
+                                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest italic">Offline</span>
                                         </div>
                                     )}
                                 </div>
@@ -154,7 +154,7 @@ export function DiscoverFeed() {
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-1">
                                             <h3 className="text-2xl font-bold text-white tracking-tight">{u.name}</h3>
-                                            <div className="flex items-center gap-1.5 text-zinc-500 font-medium text-[10px] uppercase tracking-wider">
+                                            <div className="flex items-center gap-1.5 text-zinc-400 font-medium text-[10px] uppercase tracking-wider">
                                                 <MapPin className="w-3 h-3" /> Area 51, Hidden
                                             </div>
                                         </div>

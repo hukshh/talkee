@@ -139,9 +139,9 @@ export default function OnboardingForm({
                     </div>
                     <div className="space-y-2">
                         <h1 className="text-5xl md:text-7xl font-black text-white italic uppercase tracking-tighter">
-                            Initialize <span className="text-zinc-600">Vibe</span>
+                            Initialize <span className="text-zinc-400">Vibe</span>
                         </h1>
-                        <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] italic">Step {step} of 2 • Building Signal</p>
+                        <p className="text-xs font-black text-zinc-500 uppercase tracking-[0.3em] italic">Step {step} of 2 • Building Signal</p>
                     </div>
 
                     <div className="flex justify-center items-center gap-3">
@@ -158,7 +158,7 @@ export default function OnboardingForm({
                                     <Avatar className="h-64 w-64 rounded-[3.5rem] border-4 border-white/10 transition-all duration-700 group-hover:border-white/30 group-hover:scale-105 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
                                         <AvatarImage src={previewUrl || ""} className="object-cover" />
                                         <AvatarFallback className="bg-zinc-900 border-none">
-                                            <Camera className="h-16 w-16 text-zinc-700 group-hover:text-white transition-all" />
+                                            <Camera className="h-16 w-16 text-zinc-600 group-hover:text-white transition-all" />
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="absolute -bottom-4 -right-4 h-16 w-16 glass rounded-3xl flex items-center justify-center border-white/10 shadow-2xl group-hover:bg-white group-hover:text-black transition-all">
@@ -167,7 +167,7 @@ export default function OnboardingForm({
                                     <input id="avatar" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                                 </Label>
                                 <div className="text-center">
-                                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest italic group-hover:text-white transition-all underline underline-offset-4">Upload Visual ID</p>
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic group-hover:text-white transition-all underline underline-offset-4">Upload Visual ID</p>
                                 </div>
                             </div>
 
@@ -180,7 +180,7 @@ export default function OnboardingForm({
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="Identification..."
-                                        className="h-14 glass text-white border-white/10 rounded-2xl px-6 font-bold placeholder:text-zinc-800"
+                                        className="h-14 glass text-white border-white/10 rounded-2xl px-6 font-bold placeholder:text-zinc-600"
                                     />
                                 </div>
 
@@ -196,7 +196,7 @@ export default function OnboardingForm({
                                                 onClick={() => setFormData({ ...formData, gender: g })}
                                                 className={clsx(
                                                     "h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all italic border border-white/5",
-                                                    formData.gender === g ? "bg-white text-black shadow-2xl" : "glass hover:bg-white/5 text-zinc-500"
+                                                    formData.gender === g ? "bg-white text-black shadow-2xl" : "glass hover:bg-white/5 text-zinc-400"
                                                 )}
                                             >
                                                 {g}
@@ -240,7 +240,7 @@ export default function OnboardingForm({
                                                 onClick={() => toggleTag(tag)}
                                                 className={clsx(
                                                     "px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all italic border border-white/5",
-                                                    formData.interests.includes(tag) ? "bg-white text-black shadow-2xl scale-105" : "glass text-zinc-500 hover:text-white"
+                                                    formData.interests.includes(tag) ? "bg-white text-black shadow-2xl scale-105" : "glass text-zinc-400 hover:text-white"
                                                 )}
                                             >
                                                 {tag}
@@ -262,7 +262,7 @@ export default function OnboardingForm({
                                                 onClick={() => toggleTag(tag)}
                                                 className={clsx(
                                                     "px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all italic border border-white/5",
-                                                    formData.interests.includes(tag) ? "bg-white text-black shadow-2xl scale-105" : "glass text-zinc-500 hover:text-white"
+                                                    formData.interests.includes(tag) ? "bg-white text-black shadow-2xl scale-105" : "glass text-zinc-400 hover:text-white"
                                                 )}
                                             >
                                                 {tag}
@@ -278,7 +278,7 @@ export default function OnboardingForm({
                                     value={formData.bio}
                                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, bio: e.target.value })}
                                     placeholder="Manifest your presence..."
-                                    className="min-h-[150px] glass text-white border-white/10 rounded-[2rem] px-8 py-6 font-bold placeholder:text-zinc-800 italic text-lg leading-relaxed shadow-inner"
+                                    className="min-h-[150px] glass text-white border-white/10 rounded-[2rem] px-8 py-6 font-bold placeholder:text-zinc-600 italic text-lg leading-relaxed shadow-inner"
                                 />
                             </div>
 
@@ -287,7 +287,7 @@ export default function OnboardingForm({
                                     type="button"
                                     variant="ghost"
                                     onClick={() => setStep(1)}
-                                    className="h-20 w-32 rounded-[2rem] glass text-zinc-500 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest italic border-white/5 transition-all"
+                                    className="h-20 w-32 rounded-[2rem] glass text-zinc-400 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest italic border-white/5 transition-all"
                                 >
                                     Back
                                 </Button>
