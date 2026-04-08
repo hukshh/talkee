@@ -119,7 +119,8 @@ export const onboardUser = mutation({
     args: {
         currentClerkId: v.string(),
         name: v.string(),
-        birthDate: v.number(),
+        birthDate: v.optional(v.number()),
+        age: v.optional(v.number()),
         gender: v.string(),
         bio: v.optional(v.string()),
         interests: v.optional(v.array(v.string())),
@@ -134,14 +135,25 @@ export const onboardUser = mutation({
 
         if (!user) throw new Error("User not found");
 
-        // Calculate age for validation
-        const birthDate = new Date(args.birthDate);
-        const age = new Date().getFullYear() - birthDate.getFullYear();
-        if (age < 18) throw new Error("You must be 18 or older to use this app.");
+        let birthDate = args.birthDate;
+        let finalAge = 0;
+
+        if (birthDate !== undefined) {
+            const birthDateObj = new Date(birthDate);
+            finalAge = new Date().getFullYear() - birthDateObj.getFullYear();
+        } else if (args.age !== undefined) {
+            finalAge = args.age;
+            // Approximate birthDate if only age is provided
+            birthDate = new Date(new Date().getFullYear() - finalAge, 0, 1).getTime();
+        } else {
+            throw new Error("Either birthDate or age must be provided.");
+        }
+
+        if (finalAge < 18) throw new Error("You must be 18 or older to use this app.");
 
         await ctx.db.patch(user._id, {
             name: args.name,
-            birthDate: args.birthDate,
+            birthDate: birthDate,
             gender: args.gender,
             bio: args.bio,
             interests: args.interests,
