@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, Heart, X, Sparkles, Zap, ShieldCheck, MapPin, Share2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import clsx from "clsx";
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 
 interface ProfileViewProps {
     user: any;
@@ -16,11 +20,31 @@ interface ProfileViewProps {
 }
 
 export function ProfileView({ user, currentUser, isStandalone, onClose }: ProfileViewProps) {
+    const swipe = useMutation(api.matches.swipe);
+    const [isRequested, setIsRequested] = useState(false);
+    
     if (!user) return null;
 
-    const userInterests = user.interests || [...(user.fantasy || []), ...(user.desire || [])];
-    const currentUserInterests = currentUser.interests || [...(currentUser.fantasy || []), ...(currentUser.desire || [])];
+    const userInterests = Array.from(new Set([...(user.interests || []), ...(user.fantasy || []), ...(user.desire || [])]));
+    const currentUserInterests = Array.from(new Set([...(currentUser?.interests || []), ...(currentUser?.fantasy || []), ...(currentUser?.desire || [])]));
     const commonInterests = userInterests.filter((i: string) => currentUserInterests.includes(i));
+    
+    const age = user.birthDate ? Math.floor((Date.now() - user.birthDate) / (1000 * 60 * 60 * 24 * 365.25)) : (user.age || "");
+    const identityString = age ? `${age} • ${user.gender} • Identity Verified` : `${user.gender} • Identity Verified`;
+
+    const handlePing = async () => {
+        try {
+            await swipe({
+                currentClerkId: currentUser.clerkId,
+                swipedId: user._id,
+                action: "like"
+            });
+            setIsRequested(true);
+            toast.success(`Frequency request sent to ${user.name}`);
+        } catch (error) {
+            toast.error("Failed to initiate frequency.");
+        }
+    };
 
     return (
         <div className={clsx("relative w-full", isStandalone ? "min-h-screen bg-[#050505]" : "")}>
@@ -67,7 +91,7 @@ export function ProfileView({ user, currentUser, isStandalone, onClose }: Profil
                         </div>
                         <div className="flex items-center gap-2">
                             <Zap className="w-3.5 h-3.5 text-zinc-500" />
-                            <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest italic">{user.gender} • Identity Verified</span>
+                            <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest italic">{identityString}</span>
                         </div>
                     </div>
                 </div>
@@ -138,8 +162,17 @@ export function ProfileView({ user, currentUser, isStandalone, onClose }: Profil
 
                 {/* Action Hub */}
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row gap-6">
-                    <Button className="flex-1 h-20 rounded-[2rem] bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-95 transition-all text-sm font-black uppercase tracking-[0.2em] italic shadow-[0_0_50px_rgba(255,255,255,0.2)]">
-                        <MessageCircle className="w-6 h-6 mr-3" /> Initiate Frequency
+                    <Button 
+                        onClick={handlePing}
+                        disabled={isRequested}
+                        className={clsx(
+                            "flex-1 h-20 rounded-[2rem] text-sm font-black uppercase tracking-[0.2em] italic transition-all",
+                            isRequested 
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-not-allowed shadow-[0_0_30px_rgba(16,185,129,0.2)]" 
+                                : "bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-95 shadow-[0_0_50px_rgba(255,255,255,0.2)]"
+                        )}
+                    >
+                        <MessageCircle className="w-6 h-6 mr-3" /> {isRequested ? "Request Sent" : "Initiate Frequency"}
                     </Button>
                     <div className="flex gap-4">
                         <Button className="h-20 w-20 rounded-[2rem] glass-darker text-white border-white/5 hover:bg-white hover:text-black transition-all">

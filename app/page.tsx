@@ -7,6 +7,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { Sparkles, ChevronLeft } from "lucide-react";
+import { clsx } from "clsx";
 
 import { Sidebar } from "@/components/Sidebar";
 import { DesktopNavbar } from "@/components/DesktopNavbar";

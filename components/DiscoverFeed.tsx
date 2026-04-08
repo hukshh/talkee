@@ -163,7 +163,7 @@ export function DiscoverFeed() {
                                         </div>
                                     </div>
                                     <div className="flex flex-wrap gap-2 pt-2">
-                                        {(u.interests || u.fantasy || []).slice(0, 2).map((t: string) => (
+                                        {Array.from(new Set((u.interests || u.fantasy || []) as string[])).slice(0, 2).map((t: string) => (
                                             <Badge key={t} variant="secondary" className="bg-white/[0.05] text-zinc-300 border-white/[0.05] text-[8px] font-medium uppercase tracking-wider py-1 px-2.5 rounded-full backdrop-blur-md">
                                                 {t}
                                             </Badge>

@@ -26,7 +26,8 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
     const audioRef = useRef<HTMLAudioElement>(null);
 
     const hasStatuses = user.items && user.items.length > 0;
-    const currentItem = hasStatuses ? user.items[currentIndex] : null;
+    const safeIndex = hasStatuses && currentIndex >= user.items.length ? 0 : currentIndex;
+    const currentItem = hasStatuses ? user.items[safeIndex] : null;
 
     const VIBE_PRESETS = [
         { title: "Neon Phonk", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
@@ -89,7 +90,7 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
-        setPendingFiles(files);
+        setPendingFiles(prev => [...prev, ...files]);
         setIsConfiguring(true);
     };
 
@@ -108,6 +109,12 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
                     headers: { "Content-Type": file.type },
                     body: file,
                 });
+                
+                if (!result.ok) {
+                    console.error("Upload failed", await result.text());
+                    throw new Error("Failed to upload file to storage");
+                }
+                
                 const { storageId } = await result.json();
 
                 await createStatus({
@@ -190,6 +197,7 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
 
                 {/* Media Canvas */}
                 <div className="flex-1 flex items-center justify-center bg-black/40 relative">
+                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,video/*" multiple className="hidden" />
                     {!hasStatuses && !isConfiguring ? (
                         <div className="flex flex-col items-center gap-10 text-center px-12 animate-in zoom-in duration-700">
                             <div className="relative">
@@ -209,7 +217,6 @@ export function StatusViewer({ user, currentClerkId, onClose, forceCreate = fals
                             >
                                 {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Capture Signal"}
                             </Button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,video/*" multiple className="hidden" />
                         </div>
                     ) : isConfiguring ? (
                         <div className="absolute inset-0 bg-[#050505]/95 z-[80] flex flex-col p-10 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500">

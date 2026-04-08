@@ -169,7 +169,7 @@ function SwipeCard({ user, onSwipe, isTop }: { user: any; onSwipe: (action: "lik
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                            {(user.interests || user.fantasy || []).slice(0, 3).map((tag: string) => (
+                            {Array.from(new Set((user.interests || user.fantasy || []) as string[])).slice(0, 3).map((tag: string) => (
                                 <span key={tag} className="px-4 py-1.5 glass rounded-full text-[9px] font-black text-white italic uppercase tracking-widest border-white/5">
                                     {tag}
                                 </span>
