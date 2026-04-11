@@ -14,11 +14,11 @@ export const getPotentialMatches = query({
 
         if (!currentUser) return [];
 
-        // Get all users except current user
+
         const allUsers = await ctx.db.query("users").collect();
         const otherUsers = allUsers.filter((u) => u._id !== currentUser._id);
 
-        // Get all past swipes by the current user
+
         const pastSwipes = await ctx.db
             .query("swipes")
             .withIndex("by_swiper", (q) => q.eq("swiperId", currentUser._id))

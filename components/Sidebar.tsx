@@ -43,6 +43,7 @@ export function Sidebar({
     const router = useRouter();
     const pathname = usePathname();
 
+    const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
     const birthdayData = useQuery(api.users.checkMyBirthday, user?.id ? { currentClerkId: user.id } : "skip");
 
     useEffect(() => {
@@ -107,6 +108,15 @@ export function Sidebar({
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
+                        <div 
+                            onClick={() => onSelectWallet()}
+                            className="glass-silver px-3 py-1.5 rounded-full flex items-center gap-2 border-white/10 active:scale-95 transition-all cursor-pointer shadow-lg"
+                        >
+                            <Coins className="w-3.5 h-3.5 text-white" />
+                            <span className="text-[10px] font-black text-white italic tracking-tighter">
+                                {currentUser?.virtualCurrency || 0}
+                            </span>
+                        </div>
                         <NotificationsPanel onSelectUser={onSelectConversation} />
                     </div>
                 </div>
@@ -123,6 +133,20 @@ export function Sidebar({
                             </h1>
                         </div>
                         <div className="flex items-center gap-3">
+                            <div 
+                                onClick={() => onSelectWallet()}
+                                className="glass-silver px-4 py-2 rounded-2xl flex items-center gap-2.5 border-white/5 hover:border-white/10 hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-2xl group/energy"
+                            >
+                                <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center shadow-lg group-hover/energy:rotate-12 transition-transform">
+                                    <Coins className="w-4 h-4 text-black" />
+                                </div>
+                                <div className="flex flex-col -space-y-0.5">
+                                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none">Energy</span>
+                                    <span className="text-[13px] font-black text-white tracking-tighter leading-none">
+                                        {currentUser?.virtualCurrency || 0}
+                                    </span>
+                                </div>
+                            </div>
                             <NotificationsPanel onSelectUser={onSelectConversation} />
                             <UserButton appearance={{ elements: { avatarBox: "w-11 h-11 rounded-2xl border-2 border-white/10 hover:border-white/30 transition-all shadow-xl" } }} />
                         </div>

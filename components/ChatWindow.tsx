@@ -31,12 +31,14 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
     const sendMessage = useMutation(api.messages.sendMessage);
     const setTyping = useMutation(api.typing.setTyping);
 
-    const users = useQuery(api.users.getAllUsers, user?.id ? { currentClerkId: user.id } : "skip");
     const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
-
     const typingUsers = useQuery(api.typing.getTypingUsers, { conversationId: convId });
 
-    const otherUser = !conversation?.isGroup ? users?.find((u) => conversation?.members.includes(u._id)) : null;
+    // Determine other user using memberInfo from the conversation object
+    const otherUser = !conversation?.isGroup && currentUser
+        ? (conversation as any)?.memberInfo?.find((m: any) => m._id !== currentUser._id)
+        : null;
+
     const otherUserStatus = useQuery(api.statuses.getStatusByUserId, otherUser?._id && user?.id ? { userId: otherUser._id as any, currentClerkId: user.id } : "skip");
     const [viewingStatus, setViewingStatus] = useState<any>(null);
     const [activeCall, setActiveCall] = useState(false);
@@ -85,8 +87,8 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
         </div>
     );
 
-    const conversationTitle = conversation.isGroup ? conversation.groupName : otherUser?.name;
-    const isOnline = !conversation.isGroup && users?.find(u => u._id === otherUser?._id)?.isOnline;
+    const conversationTitle = conversation.isGroup ? (conversation as any).groupName : otherUser?.name;
+    const isOnline = !conversation.isGroup && otherUser?.isOnline;
 
     return (
         <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
@@ -176,8 +178,8 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                             message={m}
                             isMe={m.senderId === user.id}
                             showAvatar={i === 0 || messages[i - 1].senderId !== m.senderId}
-                            senderName={users?.find(u => u._id === m.senderId)?.name}
-                            senderAvatar={users?.find(u => u._id === m.senderId)?.avatarUrl}
+                            senderName={(conversation as any).memberInfo?.find((member: any) => member._id === m.senderId)?.name}
+                            senderAvatar={(conversation as any).memberInfo?.find((member: any) => member._id === m.senderId)?.avatarUrl}
                         />
                     ))}
                     <div ref={scrollRef} />

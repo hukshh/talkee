@@ -107,6 +107,26 @@ export const createGroup = mutation({
 export const getConversationById = query({
     args: { conversationId: v.id("conversations") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.conversationId);
+        const conversation = await ctx.db.get(args.conversationId);
+        if (!conversation) return null;
+
+        const memberInfo = [];
+        for (const memberId of conversation.members) {
+            const member = await ctx.db.get(memberId);
+            if (member) {
+                const presence = await ctx.db
+                    .query("presence")
+                    .withIndex("by_userId", (q) => q.eq("userId", member._id))
+                    .unique();
+                memberInfo.push({
+                    _id: member._id,
+                    name: member.name,
+                    avatarUrl: member.avatarUrl,
+                    isOnline: presence?.isOnline ?? false,
+                });
+            }
+        }
+
+        return { ...conversation, memberInfo };
     },
 });

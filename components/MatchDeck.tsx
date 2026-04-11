@@ -9,6 +9,7 @@ import { Heart, X, Sparkles, MapPin, Zap, Info } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import clsx from "clsx";
+import { calculateVibeScore } from "@/lib/vibe";
 
 export function MatchDeck() {
     const { user } = useUser();
@@ -18,6 +19,7 @@ export function MatchDeck() {
         api.matches.getPotentialMatches,
         currentClerkId ? { currentClerkId } : "skip"
     );
+    const currentUser = useQuery(api.users.getCurrentUser, currentClerkId ? { currentClerkId: user?.id || "" } : "skip");
 
     const swipeMutation = useMutation(api.matches.swipe);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -58,6 +60,7 @@ export function MatchDeck() {
                         <SwipeCard
                             key={u._id}
                             user={u}
+                            currentUser={currentUser}
                             onSwipe={(action) => handleSwipe(action, u._id)}
                             isTop={i === (currentMatches.length === 1 ? 0 : 1)}
                         />
@@ -106,7 +109,7 @@ export function MatchDeck() {
     );
 }
 
-function SwipeCard({ user, onSwipe, isTop }: { user: any; onSwipe: (action: "like" | "pass") => void; isTop: boolean }) {
+function SwipeCard({ user, currentUser, onSwipe, isTop }: { user: any; currentUser: any; onSwipe: (action: "like" | "pass") => void; isTop: boolean }) {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-25, 25]);
     const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
@@ -150,6 +153,16 @@ function SwipeCard({ user, onSwipe, isTop }: { user: any; onSwipe: (action: "lik
                 >
                     NOPE
                 </motion.div>
+
+                {/* Vibe Score */}
+                <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20">
+                    <div className="glass px-5 py-2 rounded-full border border-white/20 shadow-2xl flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                        <span className="text-sm font-black text-white italic uppercase tracking-widest">
+                            {calculateVibeScore(currentUser?.interests || [], user.interests || [])}% Match
+                        </span>
+                    </div>
+                </div>
 
                 {/* Info Overlay */}
                 <div className="absolute inset-x-0 bottom-0 p-10 bg-gradient-to-t from-black via-black/60 to-transparent pt-32">

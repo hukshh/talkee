@@ -30,7 +30,7 @@ export default function ProfilePage() {
 
     if (isEditing) {
         return (
-            <div className="flex-1 bg-background h-screen overflow-y-auto custom-scrollbar">
+            <div className="flex-1 bg-background h-screen overflow-y-auto custom-scrollbar dark">
                 <div className="max-w-2xl mx-auto py-12 px-6">
                     <Button
                         variant="ghost"
@@ -46,47 +46,51 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="flex-1 flex flex-col h-screen bg-background relative overflow-hidden">
+        <div className="flex-1 flex flex-col h-screen bg-background relative overflow-hidden dark">
             {/* Immersive Profile Content */}
             <ProfileView user={currentUser} currentUser={currentUser} isStandalone={true} />
 
             {/* Top Navigation Overlay */}
-            <div className="absolute top-4 md:top-8 left-4 md:left-8 right-4 md:right-8 z-30 flex items-center justify-between">
-                <div className="flex items-center gap-2 md:gap-4">
-                    <button
-                        onClick={() => router.push("/")}
-                        className="p-3 md:p-4 glass-darker rounded-2xl md:rounded-[1.5rem] hover:scale-105 transition-all text-white border-white/5 shadow-2xl"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <div className="glass-darker px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-[1.5rem] flex items-center gap-2 md:gap-3 border-white/5 shadow-2xl">
-                        <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
-                        <span className="text-white text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap">Verified</span>
+            <div className="absolute top-4 md:top-8 left-0 right-0 z-30">
+                <div className="max-w-5xl mx-auto px-4 md:px-8 flex items-center justify-between">
+                    <div className="flex items-center gap-2 md:gap-4">
+                        <button
+                            onClick={() => router.push("/")}
+                            className="p-3 md:p-4 glass-darker rounded-2xl md:rounded-[1.5rem] hover:scale-105 transition-all text-white border-white/5 shadow-2xl"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </button>
+                        <div className="glass-darker px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-[1.5rem] flex items-center gap-2 md:gap-3 border-white/5 shadow-2xl">
+                            <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
+                            <span className="text-white text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap">Verified</span>
+                        </div>
                     </div>
-                </div>
 
-                <div className="flex items-center gap-2 md:gap-3">
-                    <button
-                        onClick={() => setIsEditing(true)}
-                        className="glass-darker p-3 md:p-4 rounded-2xl md:rounded-[1.5rem] hover:scale-105 transition-all text-white border-white/5 shadow-2xl"
-                    >
-                        <Edit3 className="w-5 h-5" />
-                    </button>
-                    <button
-                        className="glass-darker p-3 md:p-4 rounded-2xl md:rounded-[1.5rem] hover:scale-105 transition-all text-white border-white/5 shadow-2xl"
-                    >
-                        <Settings className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="glass-darker p-3 md:p-4 rounded-2xl md:rounded-[1.5rem] hover:scale-105 transition-all text-white border-white/5 shadow-2xl"
+                        >
+                            <Edit3 className="w-5 h-5" />
+                        </button>
+                        <button
+                            className="glass-darker p-3 md:p-4 rounded-2xl md:rounded-[1.5rem] hover:scale-105 transition-all text-white border-white/5 shadow-2xl"
+                        >
+                            <Settings className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Profile Points Indicator (Vibe Mingle style) */}
-            <div className="absolute top-28 left-8 z-30">
-                <div className="glass px-4 py-2 rounded-full flex items-center gap-2 border-white/5 shadow-2xl">
-                    <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center">
-                        <span className="text-[10px] font-black text-black">P</span>
+            <div className="absolute top-28 left-0 right-0 z-30 pointer-events-none">
+                <div className="max-w-5xl mx-auto px-10">
+                    <div className="glass px-4 py-2 rounded-full inline-flex items-center gap-2 border-white/5 shadow-2xl pointer-events-auto">
+                        <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center">
+                            <span className="text-[10px] font-black text-black">P</span>
+                        </div>
+                        <span className="text-white text-[10px] font-black italic tracking-tight">0.959 Points</span>
                     </div>
-                    <span className="text-white text-[10px] font-black italic tracking-tight">0.959 Points</span>
                 </div>
             </div>
 

@@ -26,7 +26,7 @@ export function MobileNavbar({
     };
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-[100] md:hidden px-5 pb-[env(safe-area-inset-bottom,16px)] pt-3 bg-gradient-to-t from-[#080808] via-[#080808]/60 to-transparent pointer-events-none">
+        <div suppressHydrationWarning className="fixed inset-x-0 bottom-0 z-[100] md:hidden px-5 pb-[env(safe-area-inset-bottom,16px)] pt-3 bg-gradient-to-t from-[#080808] via-[#080808]/60 to-transparent pointer-events-none">
             <div className="max-w-sm mx-auto h-16 rounded-2xl bg-[#0e0e0e]/90 backdrop-blur-2xl flex items-center justify-around px-3 border border-white/[0.06] shadow-xl pointer-events-auto transition-all duration-500">
                 <Button
                     variant="ghost"

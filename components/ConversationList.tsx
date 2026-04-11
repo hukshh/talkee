@@ -105,17 +105,20 @@ function UserStatus({ userId }: { userId: string }) {
 
 function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
     const { user } = useUser();
-    const isGroup = conversation.isGroup;
-    const users = useQuery(api.users.getAllUsers, user?.id ? { currentClerkId: user.id } : "skip");
-    const messages = useQuery(api.messages.getMessages, { conversationId: conversation._id });
-    const otherUser = !isGroup && users ? users.find((u) => conversation.members.includes(u._id)) : null;
-    const presence = useQuery(api.presence.getPresence, !isGroup && otherUser ? { userId: otherUser._id as any } : "skip");
-
-    const otherUserStatus = useQuery(api.statuses.getStatusByUserId, otherUser?._id && user?.id ? { userId: otherUser._id as any, currentClerkId: user.id } : "skip");
     const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
+    const isGroup = conversation.isGroup;
+    const messages = useQuery(api.messages.getMessages, { conversationId: conversation._id });
+    
+    // Use memberInfo hydrated by getConversationsForUser
+    const otherUser = !isGroup && currentUser
+        ? conversation.memberInfo?.find((m: any) => m._id !== currentUser._id)
+        : null;
+
+    const presence = useQuery(api.presence.getPresence, !isGroup && otherUser ? { userId: otherUser._id as any } : "skip");
+    const otherUserStatus = useQuery(api.statuses.getStatusByUserId, otherUser?._id && user?.id ? { userId: otherUser._id as any, currentClerkId: user.id } : "skip");
     const [viewingStatus, setViewingStatus] = useState<any>(null);
 
-    if (!users || (otherUser === undefined && !isGroup)) return (
+    if (messages === undefined || (!isGroup && otherUser === undefined)) return (
         <div className="flex items-center gap-4 p-4 rounded-[2rem] bg-white/5 animate-pulse mb-3">
             <Skeleton className="h-14 w-14 rounded-2xl bg-white/5" />
             <div className="flex-1 space-y-2">

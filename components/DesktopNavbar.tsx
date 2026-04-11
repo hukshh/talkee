@@ -7,14 +7,18 @@ import { useUser, UserButton } from "@clerk/nextjs";
 import { useNav, MobileTab } from "@/context/NavContext";
 import clsx from "clsx";
 
-export function DesktopNavbar() {
+export function DesktopNavbar({ onTabChange }: { onTabChange?: (tab: MobileTab) => void }) {
     const { activeTab, setActiveTab } = useNav();
     const router = useRouter();
     const pathname = usePathname();
     const { user, isSignedIn } = useUser();
 
     const handleTabClick = (tab: MobileTab) => {
-        setActiveTab(tab);
+        if (onTabChange) {
+            onTabChange(tab);
+        } else {
+            setActiveTab(tab);
+        }
         if (pathname !== "/") {
             router.push("/");
         }

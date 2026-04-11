@@ -44,7 +44,7 @@ export default function Home() {
 
   if (!hasRecentlyOnboarded && currentUser && (!currentUser.birthDate || !currentUser.gender || !currentUser.bio || !hasTags)) {
     return (
-      <main className="flex h-screen w-full bg-[#050505]">
+      <main suppressHydrationWarning className="flex h-screen w-full bg-[#050505] dark">
         <OnboardingForm onComplete={() => {
           setHasRecentlyOnboarded(true);
           setActiveTab("chats");
@@ -68,9 +68,9 @@ export default function Home() {
   const isChatsActive = activeTab === "chats";
 
   return (
-    <main className="flex h-[100dvh] w-full bg-background overflow-hidden relative dark">
+    <main suppressHydrationWarning className="flex h-[100dvh] w-full bg-background overflow-hidden relative dark">
       {/* Desktop Navbar */}
-      <DesktopNavbar />
+      <DesktopNavbar onTabChange={handleTabChange} />
 
       {/* Sidebar - Always visible on desktop, tab-dependent on mobile */}
       <div className={clsx(

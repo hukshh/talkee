@@ -9,7 +9,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Camera, Loader2, Heart, Check, Sparkles, Zap, ShieldCheck, Plus } from "lucide-react";
+import { Camera, Loader2, Heart, Check, Sparkles, Zap, ShieldCheck, Plus, ArrowRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import clsx from "clsx";
 
@@ -122,7 +122,7 @@ export default function OnboardingForm({
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center p-4 md:p-10 relative overflow-hidden bg-[#050505]">
+        <div className="min-h-screen w-full flex items-center justify-center p-4 md:p-10 relative overflow-hidden bg-[#050505] dark">
             {/* Background elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-[120px] animate-pulse" />
@@ -180,7 +180,7 @@ export default function OnboardingForm({
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="Identification..."
-                                        className="h-14 glass text-white border-white/10 rounded-2xl px-6 font-bold placeholder:text-zinc-600"
+                                        className="h-14 bg-[#0c0c0c]/60 text-white border-white/10 rounded-2xl px-6 font-bold placeholder:text-zinc-600 backdrop-blur-xl focus:bg-[#0c0c0c]/80 transition-all"
                                     />
                                 </div>
 
@@ -196,7 +196,7 @@ export default function OnboardingForm({
                                                 onClick={() => setFormData({ ...formData, gender: g })}
                                                 className={clsx(
                                                     "h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all italic border border-white/5",
-                                                    formData.gender === g ? "bg-white text-black shadow-2xl" : "glass hover:bg-white/5 text-zinc-400"
+                                                    formData.gender === g ? "bg-white text-black shadow-2xl" : "bg-[#0c0c0c]/40 hover:bg-white/5 text-zinc-400"
                                                 )}
                                             >
                                                 {g}
@@ -211,16 +211,16 @@ export default function OnboardingForm({
                                         type="date"
                                         value={formData.birthDate}
                                         onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                                        className="h-14 glass text-white border-white/10 rounded-2xl px-6 font-bold"
+                                        className="h-14 bg-[#0c0c0c]/60 text-white border-white/10 rounded-2xl px-6 font-bold focus:bg-[#0c0c0c]/80 transition-all"
                                     />
                                 </div>
 
                                 <Button
                                     type="button"
                                     onClick={() => setStep(2)}
-                                    className="w-full h-16 rounded-[2rem] bg-white text-black hover:bg-zinc-200 font-black uppercase tracking-widest italic transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)] active:scale-95"
+                                    className="w-full h-16 rounded-2xl bg-white text-black hover:bg-zinc-200 font-black uppercase tracking-widest italic transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)] group active:scale-95"
                                 >
-                                    Proceed to Frequency Mapping
+                                    Access Interests Layer <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                                 </Button>
                             </div>
                         </div>
@@ -278,25 +278,23 @@ export default function OnboardingForm({
                                     value={formData.bio}
                                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, bio: e.target.value })}
                                     placeholder="Manifest your presence..."
-                                    className="min-h-[150px] glass text-white border-white/10 rounded-[2rem] px-8 py-6 font-bold placeholder:text-zinc-600 italic text-lg leading-relaxed shadow-inner"
+                                    className="min-h-[150px] bg-[#0c0c0c]/80 text-white border-white/10 rounded-[2rem] px-8 py-6 font-bold placeholder:text-zinc-700 italic text-lg leading-relaxed shadow-inner backdrop-blur-3xl"
                                 />
-                            </div>
-
-                            <div className="flex gap-6">
+                            </div>                            <div className="flex flex-col sm:flex-row gap-4">
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     onClick={() => setStep(1)}
-                                    className="h-20 w-32 rounded-[2rem] glass text-zinc-400 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest italic border-white/5 transition-all"
+                                    className="h-16 flex-1 sm:flex-none sm:w-32 rounded-2xl glass-darker text-zinc-400 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest italic border-white/5 transition-all"
                                 >
                                     Back
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 h-20 rounded-[2rem] bg-white text-black hover:bg-zinc-200 font-black uppercase tracking-widest italic transition-all shadow-[0_0_50px_rgba(255,255,255,0.2)] active:scale-95"
+                                    className="flex-1 h-16 rounded-2xl bg-white text-black hover:bg-zinc-200 disabled:opacity-80 disabled:bg-white font-black uppercase tracking-widest italic transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)] active:scale-95"
                                 >
-                                    {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : "Authorize Vibe Access"}
+                                    {loading ? <Loader2 className="h-6 w-6 animate-spin text-black" /> : "Authorize Vibe Access"}
                                 </Button>
                             </div>
                         </div>

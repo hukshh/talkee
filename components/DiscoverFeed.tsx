@@ -11,6 +11,8 @@ import { useUser } from "@clerk/nextjs";
 import { Badge } from "./ui/badge";
 import clsx from "clsx";
 
+import { calculateVibeScore } from "@/lib/vibe";
+
 export function DiscoverFeed() {
     const { user } = useUser();
     const currentClerkId = user?.id;
@@ -18,15 +20,7 @@ export function DiscoverFeed() {
     const currentUser = useQuery(api.users.getCurrentUser, currentClerkId ? { currentClerkId } : "skip");
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [points, setPoints] = useState<{ x: number, y: number }[]>([]);
-
-    useEffect(() => {
-        const newPoints = Array.from({ length: 6 }).map(() => ({
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-        }));
-        setPoints(newPoints);
-    }, []);
+    const [viewMode, setViewMode] = useState<"grid" | "swipe">("grid");
 
     const filteredUsers = useMemo(() => {
         if (!users) return [];
@@ -35,150 +29,83 @@ export function DiscoverFeed() {
             u.bio?.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [users, searchQuery]);
-    const [viewMode, setViewMode] = useState<"grid" | "swipe">("grid");
+
     if (users === undefined) return (
         <div className="flex-1 flex items-center justify-center py-40">
-            <div className="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin shadow-2xl" />
+            <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin" />
         </div>
     );
 
     return (
-        <div className="flex-1 p-4 md:p-6 space-y-6 relative overflow-hidden">
-            {/* Ambient Background Elements */}
-            <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-                {points.map((p, i) => (
-                    <div
-                        key={i}
-                        className="absolute w-[400px] h-[400px] bg-white/5 rounded-full blur-[100px] animate-pulse"
-                        style={{
-                            top: `${p.y}%`,
-                            left: `${p.x}%`,
-                            animationDelay: `${i * 2}s`
-                        }}
-                    />
-                ))}
-            </div>
-
-            {/* Header / Social Search */}
-            <div className="max-w-6xl mx-auto space-y-6 mt-2 md:mt-8 px-1">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-transparent dark">
+            {/* Header & Controls Section */}
+            <div className="sticky top-0 z-40 bg-[#080808]/80 backdrop-blur-3xl border-b border-white/[0.04] px-4 py-6 md:px-8 md:py-8 space-y-6">
+                <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 glass-grey rounded-xl flex items-center justify-center">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 glass-silver rounded-xl flex items-center justify-center">
                                 <Sparkles className="w-4 h-4 text-white" />
                             </div>
-                            <h1 className="text-3xl md:text-4xl font-black text-white italic uppercase tracking-tighter">
-                                Discover <span className="text-zinc-500">Vibes</span>
-                            </h1>
+                            <h1 className="text-2xl md:text-3xl font-black text-white italic uppercase tracking-tighter">Explore <span className="text-zinc-500">Vibes</span></h1>
                         </div>
-                        <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest px-1">Scanning for compatible frequencies</p>
+                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em] italic leading-none px-1">Scanning Neural Frequencies</p>
                     </div>
 
-                    <div className="flex bg-[#0c0c0c]/60 p-1.5 rounded-2xl border border-white/[0.04]">
-                        <button
-                            onClick={() => setViewMode("grid")}
-                            className={clsx(
-                                "flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all",
-                                viewMode === "grid" ? "bg-white text-black shadow-xl" : "text-zinc-500 hover:text-white"
-                            )}
-                        >
-                            <LayoutGrid className="w-3.5 h-3.5" /> Grid
-                        </button>
-                        <button
-                            onClick={() => setViewMode("swipe")}
-                            className={clsx(
-                                "flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all",
-                                viewMode === "swipe" ? "bg-white text-black shadow-xl" : "text-zinc-500 hover:text-white"
-                            )}
-                        >
-                            <Layers className="w-3.5 h-3.5" /> Match
-                        </button>
-                    </div>
-                </div>
+                    <div className="flex items-center gap-4">
+                        <div className="relative group flex-1 md:w-80">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-white transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Identify frequency..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full h-11 bg-white/5 border border-white/[0.06] rounded-2xl pl-11 pr-4 text-sm text-white focus:bg-white/10 focus:border-white/20 transition-all outline-none placeholder:text-zinc-700"
+                            />
+                        </div>
 
-                <div className="relative group max-w-2xl">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-white/0 via-white/5 to-white/0 rounded-[2rem] blur opacity-0 group-hover:opacity-100 transition duration-1000" />
-                    <div className="glass-grey flex items-center gap-3 p-2 pl-5 rounded-2xl shadow-lg">
-                        <Search className="w-5 h-5 text-zinc-500" />
-                        <input
-                            type="text"
-                            placeholder="Identify name, vibe, or frequency..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-transparent border-none text-white focus:ring-0 flex-1 h-10 font-medium text-sm placeholder:text-zinc-500"
-                        />
-                        <Button className="h-10 px-6 glass-darker text-white rounded-xl border-white/[0.05] hover:bg-white hover:text-black font-bold uppercase tracking-wider text-xs transition-all">
-                            Scan
-                        </Button>
+                        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/[0.04] shrink-0">
+                            <button
+                                onClick={() => setViewMode("grid")}
+                                className={clsx(
+                                    "p-2.5 rounded-xl transition-all",
+                                    viewMode === "grid" ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
+                                )}
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => setViewMode("swipe")}
+                                className={clsx(
+                                    "p-2.5 rounded-xl transition-all",
+                                    viewMode === "swipe" ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
+                                )}
+                            >
+                                <Layers className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Discover Grid / Match Deck */}
-            {viewMode === "grid" ? (
-                <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-1 pb-32">
-                    {filteredUsers.map((u, i) => (
-                        <div
-                            key={u._id}
-                            onClick={() => setSelectedUser(u)}
-                            className={clsx(
-                                "group cursor-pointer relative overflow-hidden rounded-2xl glass-grey border-white/[0.06] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
-                                i % 5 === 0 ? "md:col-span-2" : ""
-                            )}
-                        >
-                            <div className="relative h-80 w-full">
-                                <img
-                                    src={u.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"}
-                                    alt={u.name}
-                                    className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-80" />
-
-                                {/* Top Badges */}
-                                <div className="absolute top-6 left-6 flex gap-2">
-                                    {u.isOnline ? (
-                                        <div className="glass px-3 py-1.5 rounded-full flex items-center gap-1.5 border-white/10">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
-                                            <span className="text-[9px] font-black text-white uppercase tracking-widest italic">Live</span>
-                                        </div>
-                                    ) : (
-                                        <div className="glass-darker px-3 py-1.5 rounded-full flex items-center gap-1.5 border-white/5 opacity-60">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest italic">Offline</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Info */}
-                                <div className="absolute bottom-8 left-8 right-8 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <h3 className="text-2xl font-bold text-white tracking-tight">{u.name}</h3>
-                                            <div className="flex items-center gap-1.5 text-zinc-400 font-medium text-[10px] uppercase tracking-wider">
-                                                <MapPin className="w-3 h-3" /> Area 51, Hidden
-                                            </div>
-                                        </div>
-                                        <div className="h-10 w-10 glass rounded-xl flex items-center justify-center border-white/[0.08] transition-all group-hover:scale-105 group-hover:bg-white group-hover:text-black">
-                                            <Plus className="w-6 h-6" />
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 pt-2">
-                                        {Array.from(new Set((u.interests || u.fantasy || []) as string[])).slice(0, 2).map((t: string) => (
-                                            <Badge key={t} variant="secondary" className="bg-white/[0.05] text-zinc-300 border-white/[0.05] text-[8px] font-medium uppercase tracking-wider py-1 px-2.5 rounded-full backdrop-blur-md">
-                                                {t}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="flex-1 min-h-[600px] flex flex-col">
-                    <MatchDeck />
-                </div>
-            )}
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {viewMode === "grid" ? (
+                    <div className="max-w-7xl mx-auto p-4 md:p-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6 pb-40">
+                        {filteredUsers.map((u) => (
+                            <VibeCard
+                                key={u._id}
+                                user={u}
+                                currentUser={currentUser}
+                                onClick={() => setSelectedUser(u)}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="h-full flex flex-col">
+                        <MatchDeck />
+                    </div>
+                )}
+            </div>
 
             {selectedUser && (
                 <UserProfileModal
@@ -187,8 +114,73 @@ export function DiscoverFeed() {
                     isOpen={!!selectedUser}
                     onClose={() => setSelectedUser(null)}
                 />
-            )
-            }
+            )}
+        </div>
+    );
+}
+
+function VibeCard({ user: u, currentUser, onClick }: { user: any, currentUser: any, onClick: () => void }) {
+    const score = calculateVibeScore(currentUser?.interests || [], [...(u.interests || []), ...(u.fantasy || []), ...(u.desire || [])]);
+    
+    return (
+        <div
+            onClick={onClick}
+            className="group relative aspect-[4/5] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-zinc-900 cursor-pointer border border-white/5 transition-all duration-700 hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(0,0,0,0.8)]"
+        >
+            {/* Base Image */}
+            <img
+                src={u.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"}
+                alt={u.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+            />
+
+            {/* Top Protection Gradient */}
+            <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-black/60 via-black/20 to-transparent opacity-80" />
+            
+            {/* Bottom Protection Gradient */}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#080808] via-[#080808]/40 to-transparent opacity-90 transition-opacity group-hover:opacity-100" />
+
+            {/* Top Indicators */}
+            <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+                {u.isOnline ? (
+                    <div className="glass px-2.5 py-1 rounded-full flex items-center gap-1.5 border-white/10 shadow-2xl">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse" />
+                        <span className="text-[8px] font-black text-white uppercase tracking-widest italic">Live</span>
+                    </div>
+                ) : (
+                    <div className="glass-darker px-2.5 py-1 rounded-full flex items-center gap-1.5 border-white/5 opacity-40">
+                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest italic">Idle</span>
+                    </div>
+                )}
+
+                <div className="glass px-2 py-1 rounded-full flex items-center gap-1.5 border-white/10 shadow-2xl backdrop-blur-2xl">
+                    <span className="text-[9px] font-black text-white italic tracking-tighter">{score}%</span>
+                </div>
+            </div>
+
+            {/* Bottom Info */}
+            <div className="absolute bottom-5 left-5 right-5 space-y-2 z-10">
+                <div className="space-y-0.5">
+                    <h3 className="text-lg md:text-xl font-black text-white italic uppercase tracking-tighter leading-none group-hover:text-zinc-300 transition-colors">
+                        {u.name.split(' ')[0]}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-zinc-500 font-black text-[8px] uppercase tracking-[0.2em] italic">
+                        <MapPin className="w-2.5 h-2.5" /> Area 51
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 pt-1 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
+                    {Array.from(new Set((u.interests || []) as string[])).slice(0, 2).map((t: string) => (
+                        <span key={t} className="px-2.5 py-1 glass rounded-full text-[7px] font-black text-white/60 uppercase tracking-widest border-white/5 whitespace-nowrap">
+                            {t}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            {/* Premium Shine Layer */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-white/5 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-1000" />
         </div>
     );
 }

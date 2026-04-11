@@ -8,8 +8,8 @@ import { api } from "@/convex/_generated/api";
 
 export function Preloader({ children }: { children: React.ReactNode }) {
     const [isMounted, setIsMounted] = useState(false);
-    const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
-    const currentUser = useQuery(api.users.getCurrentUser, (isClerkLoaded && isSignedIn) ? { currentClerkId: "me" } : "skip"); // Just a poke to see if convex is ready
+    const { isLoaded: isClerkLoaded, isSignedIn, user } = useUser();
+    const currentUser = useQuery(api.users.getCurrentUser, (isClerkLoaded && isSignedIn && user?.id) ? { currentClerkId: user.id } : "skip"); // Just a poke to see if convex is ready
 
     useEffect(() => {
         setIsMounted(true);
@@ -19,7 +19,7 @@ export function Preloader({ children }: { children: React.ReactNode }) {
     // We only show the full screen preloader if not mounted to prevent hydration mismatches
     if (!isMounted) {
         return (
-            <div className="fixed inset-0 z-[1000] bg-[#050505] flex flex-col items-center justify-center space-y-6">
+            <div suppressHydrationWarning className="fixed inset-0 z-[1000] bg-[#050505] flex flex-col items-center justify-center space-y-6">
                 <div className="relative">
                     <div className="w-24 h-24 bg-white/5 rounded-[2rem] flex items-center justify-center border border-white/10 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
                         <Sparkles className="w-12 h-12 text-zinc-900" />
@@ -33,7 +33,7 @@ export function Preloader({ children }: { children: React.ReactNode }) {
 
     if (isLoading) {
         return (
-            <div className="fixed inset-0 z-[1000] bg-[#050505] flex flex-col items-center justify-center space-y-6">
+            <div suppressHydrationWarning className="fixed inset-0 z-[1000] bg-[#050505] flex flex-col items-center justify-center space-y-6">
                 <div className="relative">
                     <div className="w-24 h-24 bg-white/5 rounded-[2rem] flex items-center justify-center border border-white/10 shadow-[0_0_50px_rgba(255,255,255,0.1)] animate-pulse">
                         <Sparkles className="w-12 h-12 text-white shadow-2xl" />

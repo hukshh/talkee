@@ -153,13 +153,13 @@ export function Wallet() {
                         <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-widest px-1">Fuel your social energy</p>
                     </div>
 
-                    <div className="glass-silver px-6 py-4 rounded-2xl shadow-lg flex items-center gap-5 group transition-all duration-500 hover:scale-[1.01]">
+                    <div className="glass-silver px-8 py-5 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.3)] flex items-center gap-6 group transition-all duration-700 hover:scale-[1.02] border-white/5">
                         <div className="space-y-0.5">
-                            <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider leading-none">Balance</p>
-                            <p className="text-3xl font-black text-white tracking-tighter leading-none">{currentCurrency}</p>
+                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1">Energy Balance</p>
+                            <p className="text-4xl font-black text-white tracking-tighter leading-none">{currentCurrency}</p>
                         </div>
-                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-[360deg] transition-all duration-1000">
-                            <Coins className="w-6 h-6 text-black" />
+                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.2)] group-hover:rotate-[360deg] transition-all duration-1000">
+                            <Coins className="w-8 h-8 text-black" />
                         </div>
                     </div>
                 </div>
@@ -210,10 +210,10 @@ export function Wallet() {
                             <Button
                                 onClick={() => handleBuyCoins(pack)}
                                 disabled={loading === `coins-${pack.coins}`}
-                                className="w-full h-14 rounded-2xl bg-white text-black hover:bg-white hover:scale-105 active:scale-95 font-black uppercase tracking-widest italic text-xs transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                                className="w-full h-16 rounded-2xl bg-white text-black hover:bg-zinc-100 hover:scale-105 active:scale-95 font-black uppercase tracking-widest italic text-xs transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)]"
                             >
                                 {loading === `coins-${pack.coins}` ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-6 h-6 animate-spin" />
                                 ) : (
                                     "Acquire Pack"
                                 )}
@@ -245,9 +245,9 @@ export function Wallet() {
                             </li>
                         </ul>
                         {currentTier === "free" ? (
-                            <Button disabled className="h-14 rounded-2xl glass-darker text-zinc-500 font-black uppercase tracking-widest text-[10px] italic">Active Status</Button>
+                            <Button disabled className="h-16 rounded-2xl glass-darker text-zinc-500 font-black uppercase tracking-widest text-[10px] italic border-white/5">Active Status</Button>
                         ) : (
-                            <Button disabled className="h-14 rounded-2xl glass-darker text-zinc-700 font-black uppercase tracking-widest text-[10px] italic">Classic</Button>
+                            <Button disabled className="h-16 rounded-2xl glass-darker text-zinc-700 font-black uppercase tracking-widest text-[10px] italic border-white/5">Classic</Button>
                         )}
                     </div>
 
@@ -271,14 +271,14 @@ export function Wallet() {
                             </li>
                         </ul>
                         {currentTier === "pro" ? (
-                            <Button disabled className="h-14 rounded-2xl glass-darker text-white font-black uppercase tracking-widest text-[10px] italic shadow-2xl">Active Status</Button>
+                            <Button disabled className="h-16 rounded-2xl glass-darker text-white font-black uppercase tracking-widest text-[10px] italic shadow-2xl border-white/10">Active Status</Button>
                         ) : (
                             <Button
                                 onClick={() => handleUpgrade("pro")}
                                 disabled={loading === "tier-pro" || currentTier === "ultra"}
-                                className="h-14 rounded-2xl glass border border-white/20 text-white font-black uppercase tracking-widest text-[10px] italic hover:bg-white hover:text-black transition-all shadow-2xl"
+                                className="h-16 rounded-2xl glass border border-white/20 text-white font-black uppercase tracking-widest text-[10px] italic hover:bg-white hover:text-black transition-all shadow-2xl"
                             >
-                                {loading === "tier-pro" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Boost Profile"}
+                                {loading === "tier-pro" ? <Loader2 className="w-5 h-5 animate-spin" /> : "Boost Profile"}
                             </Button>
                         )}
                     </div>
@@ -303,14 +303,14 @@ export function Wallet() {
                             </li>
                         </ul>
                         {currentTier === "ultra" ? (
-                            <Button disabled className="h-14 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[10px] italic shadow-2xl">Current Status</Button>
+                            <Button disabled className="h-16 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[10px] italic shadow-2xl">Current Status</Button>
                         ) : (
                             <Button
                                 onClick={() => handleUpgrade("ultra")}
                                 disabled={loading === "tier-ultra"}
-                                className="h-14 rounded-2xl bg-white text-black hover:scale-105 transition-all font-black uppercase tracking-widest text-[10px] italic shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                                className="h-16 rounded-2xl bg-white text-black hover:scale-105 transition-all font-black uppercase tracking-widest text-[10px] italic shadow-[0_0_40px_rgba(255,255,255,0.25)]"
                             >
-                                {loading === "tier-ultra" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Reach Legend"}
+                                {loading === "tier-ultra" ? <Loader2 className="w-5 h-5 animate-spin" /> : "Reach Legend"}
                             </Button>
                         )}
                     </div>
