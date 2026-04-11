@@ -12,6 +12,7 @@ import { clsx } from "clsx";
 import { Sidebar } from "@/components/Sidebar";
 import { DesktopNavbar } from "@/components/DesktopNavbar";
 import { DiscoverFeed } from "@/components/DiscoverFeed";
+import { ProfileView } from "@/components/UserProfileModal";
 const ChatWindow = dynamic(() => import("@/components/ChatWindow").then((mod) => mod.ChatWindow), { ssr: false });
 const Wallet = dynamic(() => import("@/components/Wallet").then((mod) => mod.Wallet), { ssr: false });
 
@@ -21,6 +22,7 @@ import { MobileNavbar } from "@/components/MobileNavbar";
 
 export default function Home() {
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>();
+  const [selectedProfileId, setSelectedProfileId] = useState<string | undefined>();
   const [hasRecentlyOnboarded, setHasRecentlyOnboarded] = useState(false);
   const { activeTab, setActiveTab } = useNav();
   const { isLoaded, isSignedIn, user } = useUser();
@@ -61,6 +63,12 @@ export default function Home() {
   const handleTabChange = (tab: MobileTab) => {
     setActiveTab(tab);
     setActiveConversationId(undefined);
+    setSelectedProfileId(undefined);
+  };
+
+  const handleSelectProfile = (id: string) => {
+    setSelectedProfileId(id);
+    setActiveTab("discover");
   };
 
   const isWalletActive = activeTab === "wallet";
@@ -109,6 +117,31 @@ export default function Home() {
             {/* Mobile Nav Spacer */}
             <div className="h-32 md:hidden" />
           </div>
+        ) : selectedProfileId ? (
+          <div className="flex-1 overflow-y-auto h-full custom-scrollbar animate-in fade-in duration-500">
+             <div className="md:hidden flex items-center p-4 border-b border-white/[0.04] bg-[#080808]/80 backdrop-blur-2xl sticky top-0 z-50" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+              <button
+                onClick={() => setSelectedProfileId(undefined)}
+                className="flex items-center gap-2 group"
+              >
+                <div className="w-8 h-8 glass rounded-lg flex items-center justify-center border-white/[0.06] group-active:scale-90 transition-all">
+                  <ChevronLeft className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-zinc-500 font-medium uppercase text-[10px] tracking-wider group-hover:text-white transition-colors">Back</span>
+              </button>
+            </div>
+             <div className="hidden md:block">
+                <button 
+                  onClick={() => setSelectedProfileId(undefined)}
+                  className="absolute top-8 left-8 z-50 h-10 px-4 glass rounded-xl text-white hover:bg-white hover:text-black transition-all border-white/10 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest italic"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Exit Resonance
+                </button>
+             </div>
+             <div className="min-h-full">
+                <ProfileFrameWrapper profileId={selectedProfileId} currentUser={currentUser} onClose={() => setSelectedProfileId(undefined)} />
+             </div>
+          </div>
         ) : activeConversationId ? (
           <div className="flex-1 bg-background/50 backdrop-blur-3xl">
             {/* Mobile back button header */}
@@ -140,7 +173,7 @@ export default function Home() {
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
             </div>
-            <DiscoverFeed />
+            <DiscoverFeed onSelectProfile={handleSelectProfile} />
             {/* Mobile Nav Spacer */}
             <div className="h-40 md:hidden" />
           </div>
@@ -160,7 +193,7 @@ export default function Home() {
         ) : (
           /* Desktop default view (Discover) */
           <div className="flex-1 overflow-y-auto pb-32 md:pb-8 h-full custom-scrollbar hidden md:block">
-            <DiscoverFeed />
+            <DiscoverFeed onSelectProfile={handleSelectProfile} />
           </div>
         )}
       </div>
@@ -169,6 +202,18 @@ export default function Home() {
       {!activeConversationId && <MobileNavbar activeTab={activeTab} onTabChange={handleTabChange} />}
     </main>
   );
+}
+
+function ProfileFrameWrapper({ profileId, currentUser, onClose }: { profileId: string, currentUser: any, onClose: () => void }) {
+  const user = useQuery(api.users.getUserById, { userId: profileId as any });
+  
+  if (!user) return (
+    <div className="flex-1 flex items-center justify-center py-40">
+        <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin" />
+    </div>
+  );
+
+  return <ProfileView user={user} currentUser={currentUser} isStandalone={true} onClose={onClose} />;
 }
 
 function VibePreloader() {

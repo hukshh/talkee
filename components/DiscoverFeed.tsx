@@ -13,7 +13,7 @@ import clsx from "clsx";
 
 import { calculateVibeScore } from "@/lib/vibe";
 
-export function DiscoverFeed() {
+export function DiscoverFeed({ onSelectProfile }: { onSelectProfile?: (id: string) => void }) {
     const { user } = useUser();
     const currentClerkId = user?.id;
     const users = useQuery(api.users.getAllUsers, currentClerkId ? { currentClerkId } : "skip");
@@ -96,7 +96,13 @@ export function DiscoverFeed() {
                                 key={u._id}
                                 user={u}
                                 currentUser={currentUser}
-                                onClick={() => setSelectedUser(u)}
+                                onClick={() => {
+                                    if (onSelectProfile) {
+                                        onSelectProfile(u._id);
+                                    } else {
+                                        setSelectedUser(u);
+                                    }
+                                }}
                             />
                         ))}
                     </div>

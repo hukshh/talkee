@@ -123,14 +123,10 @@ export function Sidebar({
 
                 {/* Desktop Sidebar Content (Optimized for both) */}
                 <div className="flex flex-col w-full h-full p-4 md:p-6 space-y-4 md:space-y-6">
-                    <div className="hidden md:flex items-center justify-between">
+                    <div className="hidden md:flex items-center justify-between pb-2 border-b border-white/[0.04]">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 glass-silver rounded-xl flex items-center justify-center">
-                                <Sparkles className="w-4 h-4 text-white" />
-                            </div>
-                            <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter">
-                                Vibe <span className="text-zinc-500">Mingle</span>
-                            </h1>
+                            <NotificationsPanel onSelectUser={onSelectConversation} />
+                             <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
                         </div>
                         <div className="flex items-center gap-3">
                             <div 
@@ -147,14 +143,9 @@ export function Sidebar({
                                     </span>
                                 </div>
                             </div>
-                            <NotificationsPanel onSelectUser={onSelectConversation} />
-                            <UserButton appearance={{ elements: { avatarBox: "w-11 h-11 rounded-2xl border-2 border-white/10 hover:border-white/30 transition-all shadow-xl" } }} />
                         </div>
                     </div>
 
-                    <div className="relative group">
-                        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-                    </div>
 
                     <div className="flex-1 overflow-y-auto space-y-5 pr-1 custom-scrollbar">
                         <div className="space-y-4">
