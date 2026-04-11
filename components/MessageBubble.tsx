@@ -74,18 +74,20 @@ export function MessageBubble({ message, isMe, showAvatar, senderName, senderAva
                         </p>
 
                         <div className={clsx(
-                            "flex items-center gap-2 mt-2",
+                            "flex items-center gap-1.5 mt-1.5 transition-all duration-500",
                             isMe ? "justify-end" : "justify-start"
                         )}>
-                            <span className="text-[10px] font-medium text-zinc-500">
+                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight opacity-60 group-hover/bubble:opacity-100 transition-opacity">
                                 {format(message._creationTime, "HH:mm")}
                             </span>
                             {isMe && (
-                                <div className="text-zinc-600">
+                                <div className="flex items-center">
                                     {message.seen ? (
-                                        <CheckCheck className="w-3.5 h-3.5 text-zinc-300 animate-in fade-in" />
+                                        <div className="relative">
+                                            <CheckCheck className="w-3.5 h-3.5 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)] animate-in zoom-in duration-300" />
+                                        </div>
                                     ) : (
-                                        <Check className="w-3.5 h-3.5" />
+                                        <Check className="w-3.5 h-3.5 text-zinc-500 opacity-60" />
                                     )}
                                 </div>
                             )}
@@ -104,9 +106,9 @@ export function MessageBubble({ message, isMe, showAvatar, senderName, senderAva
 
                     {/* Quick Actions Dropdown */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <button className="opacity-0 group-hover:opacity-100 p-2 glass rounded-full text-white transition-all hover:bg-white/10 active:scale-90 h-10 w-10 flex items-center justify-center border-white/5">
-                                <MoreVertical className="w-4 h-4" />
+                        <DropdownMenuTrigger asChild>
+                            <button className="opacity-0 group-hover:opacity-100 p-2 glass rounded-full text-white transition-all hover:bg-white/10 active:scale-90 h-10 w-10 flex items-center justify-center border-white/5 outline-none border-none">
+                                <MoreVertical className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align={isMe ? "end" : "start"} className="glass-grey border-white/10 rounded-2xl p-2 min-w-[150px] shadow-2xl">

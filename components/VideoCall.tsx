@@ -213,8 +213,9 @@ export function VideoCall({
                         sdpAnswer: JSON.stringify(answer),
                     });
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Error accessing media devices or setting up WebRTC.", err);
+                toast.error(err.message || "Failed to access camera/microphone or initiate call");
                 cleanup();
             }
         };

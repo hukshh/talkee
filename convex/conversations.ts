@@ -66,6 +66,7 @@ export const getConversationsForUser = query({
                         .unique();
                     memberInfo.push({
                         _id: member._id,
+                        clerkId: member.clerkId,
                         name: member.name,
                         avatarUrl: member.avatarUrl,
                         isOnline: presence?.isOnline ?? false,
@@ -120,6 +121,7 @@ export const getConversationById = query({
                     .unique();
                 memberInfo.push({
                     _id: member._id,
+                    clerkId: member.clerkId,
                     name: member.name,
                     avatarUrl: member.avatarUrl,
                     isOnline: presence?.isOnline ?? false,

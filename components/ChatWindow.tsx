@@ -33,15 +33,31 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
 
     const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
     const typingUsers = useQuery(api.typing.getTypingUsers, { conversationId: convId });
+    const markAllAsSeen = useMutation(api.messages.markAllAsSeen);
 
-    // Determine other user using memberInfo from the conversation object
-    const otherUser = !conversation?.isGroup && currentUser
-        ? (conversation as any)?.memberInfo?.find((m: any) => m._id !== currentUser._id)
-        : null;
+    // Identify the "Other User ID" from the members array (the ID that isn't the current user's DB ID)
+    const otherUserId = conversation?.members?.find((id) => id !== currentUser?._id);
+
+    // Resilient Fetch: Directly fetch the other user's profile from the database
+    // This bypasses any issues with memberInfo hydration being out of sync
+    const otherUserFetch = useQuery(api.users.getUserById, otherUserId ? { userId: otherUserId } : "skip");
+
+    // Fallback logic for name/avatar/ID
+    const otherUser = otherUserFetch || (conversation as any)?.memberInfo?.find((m: any) => m.clerkId !== user?.id) || null;
 
     const otherUserStatus = useQuery(api.statuses.getStatusByUserId, otherUser?._id && user?.id ? { userId: otherUser._id as any, currentClerkId: user.id } : "skip");
     const [viewingStatus, setViewingStatus] = useState<any>(null);
     const [activeCall, setActiveCall] = useState(false);
+
+    // Mark messages as seen when the conversation is opened or new messages arrive
+    useEffect(() => {
+        if (user?.id && conversationId) {
+            markAllAsSeen({
+                conversationId: convId,
+                currentClerkId: user.id
+            });
+        }
+    }, [conversationId, messages?.length, user?.id, markAllAsSeen, convId]);
 
     const isAllStatusSeen = currentUser?.lastSeenStatus && otherUserStatus?.items.every((item: any) => item.createdAt <= currentUser.lastSeenStatus!);
     const hasUnreadStatus = otherUserStatus && !isAllStatusSeen;
@@ -176,7 +192,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                         <MessageBubble
                             key={m._id}
                             message={m}
-                            isMe={m.senderId === user.id}
+                            isMe={m.senderId === currentUser?._id}
                             showAvatar={i === 0 || messages[i - 1].senderId !== m.senderId}
                             senderName={(conversation as any).memberInfo?.find((member: any) => member._id === m.senderId)?.name}
                             senderAvatar={(conversation as any).memberInfo?.find((member: any) => member._id === m.senderId)?.avatarUrl}
