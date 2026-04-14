@@ -22,13 +22,13 @@ interface ProfileViewProps {
 export function ProfileView({ user, currentUser, isStandalone, onClose }: ProfileViewProps) {
     const swipe = useMutation(api.matches.swipe);
     const [isRequested, setIsRequested] = useState(false);
-    
+
     if (!user) return null;
 
     const userInterests = Array.from(new Set([...(user.interests || []), ...(user.fantasy || []), ...(user.desire || [])]));
     const currentUserInterests = Array.from(new Set([...(currentUser?.interests || []), ...(currentUser?.fantasy || []), ...(currentUser?.desire || [])]));
     const commonInterests = userInterests.filter((i: string) => currentUserInterests.includes(i));
-    
+
     const age = user.birthDate ? Math.floor((Date.now() - user.birthDate) / (1000 * 60 * 60 * 24 * 365.25)) : null;
     const genderStr = user.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : "Neutral";
     const identityString = age ? `${age} • ${genderStr} • Identity Verified` : `${genderStr} • Identity Verified`;
@@ -190,13 +190,13 @@ export function ProfileView({ user, currentUser, isStandalone, onClose }: Profil
 
                 {/* Action Hub */}
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row gap-6">
-                    <Button 
+                    <Button
                         onClick={handlePing}
                         disabled={isRequested}
                         className={clsx(
                             "flex-1 h-16 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] italic transition-all",
-                            isRequested 
-                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-not-allowed shadow-[0_0_30px_rgba(16,185,129,0.1)]" 
+                            isRequested
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-not-allowed shadow-[0_0_30px_rgba(16,185,129,0.1)]"
                                 : "bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.15)]"
                         )}
                     >
