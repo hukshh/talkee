@@ -274,7 +274,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                         </div>
                         <ScrollArea className="flex-1">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {users?.filter(u => conversation.members.includes(u._id)).map(u => (
+                                {conversation.memberInfo?.map(u => (
                                     <div
                                         key={u._id}
                                         className="glass-darker p-6 rounded-[2.5rem] border-white/5 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all group"
