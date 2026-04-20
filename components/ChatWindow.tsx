@@ -144,7 +144,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
                                 </div>
                             )}
                         </div>
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 flex flex-col items-start">
                             <h2 className="text-base md:text-lg font-bold tracking-tight text-white truncate leading-none mb-1">
                                 {conversationTitle}
                             </h2>

@@ -192,14 +192,9 @@ function ConversationUserWrapper({ conversation, isActive, onSelect }: any) {
                         </span>
                     </div>
                     <div className="flex justify-between items-center gap-2">
-                        <div className="flex-1 min-w-0 flex items-center gap-2">
-                            {isOnline && !isGroup && (
-                                <span className="hidden xs:inline-flex text-[8px] font-medium text-emerald-500/60 uppercase tracking-wider animate-pulse">
-                                    Online
-                                </span>
-                            )}
+                        <div className="flex-1 min-w-0">
                             <p className={clsx(
-                                "text-[13px] truncate h-5 flex-1 leading-relaxed transition-colors",
+                                "text-[13px] truncate h-5 leading-relaxed transition-colors",
                                 unreadCount > 0 ? "text-zinc-200 font-semibold" : "text-zinc-600 font-normal group-hover:text-zinc-500"
                             )}>
                                 {isGroup && conversation.lastMessage ? (

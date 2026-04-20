@@ -93,42 +93,40 @@ export function MessageBubble({ message, isMe, showAvatar, senderName, senderAva
                             )}
                         </div>
 
-                        {/* Hover React Actions */}
+                        {/* Hover Actions Bar */}
                         <div className={clsx(
-                            "absolute -top-4 opacity-0 group-hover/bubble:opacity-100 transition-all duration-500 flex items-center gap-1 glass-darker px-2 py-1 rounded-full border-white/10 z-10 scale-95 group-hover/bubble:scale-100",
+                            "absolute -top-4 opacity-0 group-hover/bubble:opacity-100 transition-all duration-300 flex items-center gap-1.5 glass-darker px-2.5 py-1 rounded-full border border-white/10 z-50 shadow-2xl scale-90 group-hover/bubble:scale-100",
                             isMe ? "right-0" : "left-0"
                         )}>
                             <button className="p-1 hover:bg-white/10 rounded-full transition-all active:scale-75"><Heart className="w-3.5 h-3.5 text-white" /></button>
                             <button className="p-1 hover:bg-white/10 rounded-full transition-all active:scale-75"><Reply className="w-3.5 h-3.5 text-white" /></button>
-                            <button className="p-1 hover:bg-white/10 rounded-full transition-all active:scale-75"><MoreVertical className="w-3.5 h-3.5 text-white" /></button>
+                            
+                            <DropdownMenu>
+                                <DropdownMenuTrigger className="p-1 hover:bg-white/10 rounded-full transition-all active:scale-75 outline-none border-none flex items-center justify-center">
+                                    <MoreVertical className="w-3.5 h-3.5 text-white" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align={isMe ? "end" : "start"} className="glass-grey border-white/10 rounded-xl p-1.5 min-w-[140px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                                    <DropdownMenuItem className="rounded-lg px-3 py-2 focus:bg-white/10 cursor-pointer flex items-center gap-2.5">
+                                        <Reply className="w-3.5 h-3.5 text-white" />
+                                        <span className="text-[10px] font-black text-white uppercase italic tracking-widest">Reply</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="rounded-lg px-3 py-2 focus:bg-white/10 cursor-pointer flex items-center gap-2.5">
+                                        <Share2 className="w-3.5 h-3.5 text-white" />
+                                        <span className="text-[10px] font-black text-white uppercase italic tracking-widest">Forward</span>
+                                    </DropdownMenuItem>
+                                    {isMe && (
+                                        <DropdownMenuItem
+                                            onClick={handleDelete}
+                                            className="rounded-lg px-3 py-2 focus:bg-rose-500/10 cursor-pointer flex items-center gap-2.5 text-rose-500"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                            <span className="text-[10px] font-black uppercase italic tracking-widest">Delete</span>
+                                        </DropdownMenuItem>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
-
-                    {/* Quick Actions Dropdown */}
-                    <DropdownMenu>
-                    <DropdownMenuTrigger className="opacity-0 group-hover:opacity-100 p-2 glass rounded-full text-white transition-all hover:bg-white/10 active:scale-90 h-10 w-10 flex items-center justify-center border-white/5 outline-none border-none">
-                        <MoreVertical className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
-                    </DropdownMenuTrigger>
-                        <DropdownMenuContent align={isMe ? "end" : "start"} className="glass-grey border-white/10 rounded-2xl p-2 min-w-[150px] shadow-2xl">
-                            <DropdownMenuItem className="rounded-xl px-4 py-3 focus:bg-white/10 cursor-pointer flex items-center gap-3">
-                                <Reply className="w-4 h-4 text-white" />
-                                <span className="text-xs font-black text-white uppercase italic tracking-widest">Reply</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="rounded-xl px-4 py-3 focus:bg-white/10 cursor-pointer flex items-center gap-3">
-                                <Share2 className="w-4 h-4 text-white" />
-                                <span className="text-xs font-black text-white uppercase italic tracking-widest">Forward</span>
-                            </DropdownMenuItem>
-                            {isMe && (
-                                <DropdownMenuItem
-                                    onClick={handleDelete}
-                                    className="rounded-xl px-4 py-3 focus:bg-rose-500/10 cursor-pointer flex items-center gap-3 text-rose-500"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span className="text-xs font-black uppercase italic tracking-widest">Delete</span>
-                                </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
             </div>
         </div>
