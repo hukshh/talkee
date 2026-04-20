@@ -106,11 +106,9 @@ export function MessageBubble({ message, isMe, showAvatar, senderName, senderAva
 
                     {/* Quick Actions Dropdown */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="opacity-0 group-hover:opacity-100 p-2 glass rounded-full text-white transition-all hover:bg-white/10 active:scale-90 h-10 w-10 flex items-center justify-center border-white/5 outline-none border-none">
-                                <MoreVertical className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
-                            </button>
-                        </DropdownMenuTrigger>
+                    <DropdownMenuTrigger className="opacity-0 group-hover:opacity-100 p-2 glass rounded-full text-white transition-all hover:bg-white/10 active:scale-90 h-10 w-10 flex items-center justify-center border-white/5 outline-none border-none">
+                        <MoreVertical className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
+                    </DropdownMenuTrigger>
                         <DropdownMenuContent align={isMe ? "end" : "start"} className="glass-grey border-white/10 rounded-2xl p-2 min-w-[150px] shadow-2xl">
                             <DropdownMenuItem className="rounded-xl px-4 py-3 focus:bg-white/10 cursor-pointer flex items-center gap-3">
                                 <Reply className="w-4 h-4 text-white" />

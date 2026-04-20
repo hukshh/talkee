@@ -68,7 +68,7 @@ export const getStatuses = query({
                 let fullMusicUrl = status.musicUrl;
                 if (fullMusicUrl && !fullMusicUrl.startsWith('http')) {
                     try {
-                        fullMusicUrl = await ctx.storage.getUrl(fullMusicUrl);
+                        fullMusicUrl = (await ctx.storage.getUrl(fullMusicUrl)) ?? undefined;
                     } catch (e) {
                         console.error(`Failed to get status music URL for ${fullMusicUrl}:`, e);
                     }
@@ -156,7 +156,7 @@ export const getStatusByUserId = query({
         const hydratedItems = await Promise.all(statuses.map(async (s) => {
             let mediaUrl = s.mediaUrl;
             try {
-                mediaUrl = await ctx.storage.getUrl(s.mediaUrl) || s.mediaUrl;
+                mediaUrl = (await ctx.storage.getUrl(s.mediaUrl)) || s.mediaUrl;
             } catch (e) {
                 console.error(`Failed to get status item media URL for ${s.mediaUrl}:`, e);
             }
@@ -164,7 +164,7 @@ export const getStatusByUserId = query({
             let musicUrl = s.musicUrl;
             if (musicUrl && !musicUrl.startsWith('http')) {
                 try {
-                    musicUrl = await ctx.storage.getUrl(musicUrl) || musicUrl;
+                    musicUrl = (await ctx.storage.getUrl(musicUrl)) ?? undefined;
                 } catch (e) {
                     console.error(`Failed to get status item music URL for ${musicUrl}:`, e);
                 }

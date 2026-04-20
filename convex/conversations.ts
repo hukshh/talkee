@@ -69,6 +69,7 @@ export const getConversationsForUser = query({
                         clerkId: member.clerkId,
                         name: member.name,
                         avatarUrl: member.avatarUrl,
+                        gender: member.gender,
                         isOnline: presence?.isOnline ?? false,
                     });
                 }
@@ -124,6 +125,7 @@ export const getConversationById = query({
                     clerkId: member.clerkId,
                     name: member.name,
                     avatarUrl: member.avatarUrl,
+                    gender: member.gender,
                     isOnline: presence?.isOnline ?? false,
                 });
             }
