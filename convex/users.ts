@@ -1,6 +1,37 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+export const syncUser = mutation({
+    args: {
+        clerkId: v.string(),
+        name: v.string(),
+        avatarUrl: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const existingUser = await ctx.db
+            .query("users")
+            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+            .unique();
+
+        if (existingUser) {
+            await ctx.db.patch(existingUser._id, {
+                name: args.name,
+                avatarUrl: args.avatarUrl,
+                lastSeenStatus: Date.now(),
+            });
+            return existingUser._id;
+        }
+
+        return await ctx.db.insert("users", {
+            clerkId: args.clerkId,
+            name: args.name,
+            avatarUrl: args.avatarUrl,
+            createdAt: Date.now(),
+            lastSeenStatus: Date.now(),
+        });
+    },
+});
+
 export const createUser = mutation({
     args: {
         clerkId: v.string(),
@@ -73,7 +104,12 @@ export const getAllUsers = query({
 
                 let avatarUrl = user.avatarUrl;
                 if (avatarUrl && !avatarUrl.startsWith("http")) {
-                    avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
+                    try {
+                        avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
+                    } catch (e) {
+                        console.error(`Failed to get storage URL for ${avatarUrl}:`, e);
+                        // Fallback to original value or null if it's clearly invalid
+                    }
                 }
 
                 return { ...user, avatarUrl, isOnline: presence?.isOnline ?? false };
@@ -93,7 +129,11 @@ export const getUserById = query({
         if (!user) return null;
         let avatarUrl = user.avatarUrl;
         if (avatarUrl && !avatarUrl.startsWith("http")) {
-            avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
+            try {
+                avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
+            } catch (e) {
+                console.error(`Failed to get storage URL for ${avatarUrl}:`, e);
+            }
         }
         return { ...user, avatarUrl };
     },
@@ -109,7 +149,11 @@ export const getCurrentUser = query({
         if (!user) return null;
         let avatarUrl = user.avatarUrl;
         if (avatarUrl && !avatarUrl.startsWith("http")) {
-            avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
+            try {
+                avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
+            } catch (e) {
+                console.error(`Failed to get storage URL for ${avatarUrl}:`, e);
+            }
         }
         return { ...user, avatarUrl };
     },

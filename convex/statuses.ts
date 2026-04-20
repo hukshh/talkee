@@ -58,12 +58,29 @@ export const getStatuses = query({
         for (const status of allStatuses) {
             const statusUser = await ctx.db.get(status.userId);
             if (statusUser) {
-                const fullMediaUrl = await ctx.storage.getUrl(status.mediaUrl);
-                const fullMusicUrl = status.musicUrl ? (status.musicUrl.startsWith('http') ? status.musicUrl : await ctx.storage.getUrl(status.musicUrl)) : null;
+                let fullMediaUrl = null;
+                try {
+                    fullMediaUrl = await ctx.storage.getUrl(status.mediaUrl);
+                } catch (e) {
+                    console.error(`Failed to get status media URL for ${status.mediaUrl}:`, e);
+                }
+
+                let fullMusicUrl = status.musicUrl;
+                if (fullMusicUrl && !fullMusicUrl.startsWith('http')) {
+                    try {
+                        fullMusicUrl = await ctx.storage.getUrl(fullMusicUrl);
+                    } catch (e) {
+                        console.error(`Failed to get status music URL for ${fullMusicUrl}:`, e);
+                    }
+                }
 
                 let userAvatarUrl = statusUser.avatarUrl;
                 if (userAvatarUrl && !userAvatarUrl.startsWith("http")) {
-                    userAvatarUrl = await ctx.storage.getUrl(userAvatarUrl) || userAvatarUrl;
+                    try {
+                        userAvatarUrl = await ctx.storage.getUrl(userAvatarUrl) || userAvatarUrl;
+                    } catch (e) {
+                        console.error(`Failed to get avatar URL for ${userAvatarUrl}:`, e);
+                    }
                 }
 
                 hydratedStatuses.push({
@@ -129,14 +146,35 @@ export const getStatusByUserId = query({
 
         let avatarUrl = statusUser.avatarUrl;
         if (avatarUrl && !avatarUrl.startsWith("http")) {
-            avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
+            try {
+                avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
+            } catch (e) {
+                console.error(`Failed to get avatar URL for ${avatarUrl}:`, e);
+            }
         }
 
-        const hydratedItems = await Promise.all(statuses.map(async (s) => ({
-            ...s,
-            mediaUrl: await ctx.storage.getUrl(s.mediaUrl) || s.mediaUrl,
-            musicUrl: s.musicUrl ? (s.musicUrl.startsWith('http') ? s.musicUrl : await ctx.storage.getUrl(s.musicUrl)) : null,
-        })));
+        const hydratedItems = await Promise.all(statuses.map(async (s) => {
+            let mediaUrl = s.mediaUrl;
+            try {
+                mediaUrl = await ctx.storage.getUrl(s.mediaUrl) || s.mediaUrl;
+            } catch (e) {
+                console.error(`Failed to get status item media URL for ${s.mediaUrl}:`, e);
+            }
+
+            let musicUrl = s.musicUrl;
+            if (musicUrl && !musicUrl.startsWith('http')) {
+                try {
+                    musicUrl = await ctx.storage.getUrl(musicUrl) || musicUrl;
+                } catch (e) {
+                    console.error(`Failed to get status item music URL for ${musicUrl}:`, e);
+                }
+            }
+            return {
+                ...s,
+                mediaUrl,
+                musicUrl,
+            };
+        }));
 
         return {
             userId: args.userId,

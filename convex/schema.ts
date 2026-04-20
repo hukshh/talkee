@@ -6,7 +6,7 @@ export default defineSchema({
     clerkId: v.string(),
     name: v.string(),
     avatarUrl: v.optional(v.string()),
-    createdAt: v.number(),
+    createdAt: v.optional(v.number()),
     birthDate: v.optional(v.number()),
     gender: v.optional(v.string()),
     bio: v.optional(v.string()),
@@ -89,6 +89,6 @@ export default defineSchema({
     musicTitle: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_user", ["userId"]),
-});
+}, { schemaValidation: false });
 
 
