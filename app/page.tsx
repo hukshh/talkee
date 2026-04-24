@@ -6,7 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
-import { Sparkles, ChevronLeft } from "lucide-react";
+import { Sparkles, ChevronLeft, MessageSquare, Users, Zap } from "lucide-react";
 import { clsx } from "clsx";
 
 import { Sidebar } from "@/components/Sidebar";

@@ -20,7 +20,7 @@ interface ProfileViewProps {
 }
 
 export function ProfileView({ user, currentUser, isStandalone, onClose }: ProfileViewProps) {
-    const swipe = useMutation(api.matches.swipe);
+    const createConversation = useMutation(api.conversations.createConversation);
     const [isRequested, setIsRequested] = useState(false);
 
     if (!user) return null;
@@ -35,15 +35,15 @@ export function ProfileView({ user, currentUser, isStandalone, onClose }: Profil
 
     const handlePing = async () => {
         try {
-            await swipe({
+            await createConversation({
                 currentClerkId: currentUser.clerkId,
-                swipedId: user._id,
-                action: "like"
+                otherUserId: user._id,
             });
             setIsRequested(true);
-            toast.success(`Frequency request sent to ${user.name}`);
+            toast.success(`Frequency established with ${user.name}`);
+            if (onClose) onClose();
         } catch (error) {
-            toast.error("Failed to initiate frequency.");
+            toast.error("Failed to establish frequency.");
         }
     };
 
