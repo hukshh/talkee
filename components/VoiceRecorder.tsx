@@ -5,6 +5,7 @@ import { Mic, Square, Trash2, Send, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import clsx from "clsx";
+import { WaveformVisualizer } from "./WaveformVisualizer";
 
 interface VoiceRecorderProps {
     onSend: (storageId: string) => void;
@@ -91,9 +92,12 @@ export function VoiceRecorder({ onSend, generateUploadUrl }: VoiceRecorderProps)
     if (isRecording) {
         return (
             <div className="flex-1 h-12 glass-silver rounded-2xl flex items-center justify-between px-4 border border-white/10 animate-in slide-in-from-bottom-2 duration-300">
-                <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-sm font-black text-white italic tabular-nums">{formatTime(duration)}</span>
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-sm font-black text-white italic tabular-nums">{formatTime(duration)}</span>
+                    </div>
+                    <WaveformVisualizer isActive={isRecording} barCount={20} />
                 </div>
                 <div className="flex items-center gap-2">
                     <Button

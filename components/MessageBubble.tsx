@@ -9,12 +9,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LinkPreview } from "./LinkPreview";
+import { WaveformVisualizer } from "./WaveformVisualizer";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MessageBubbleProps {
     message: any;
@@ -103,12 +106,23 @@ export function MessageBubble({
     }, {});
 
     return (
-        <div className={clsx(
-            "group flex gap-3 w-full transition-all duration-700 animate-slide-up",
-            isMe ? "flex-row-reverse" : "flex-row",
-            isFirstInGroup ? "mt-8" : "mt-1",
-            isLastInGroup ? "mb-2" : "mb-0"
-        )}>
+        <motion.div 
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ 
+                type: "spring", 
+                stiffness: 260, 
+                damping: 20,
+                duration: 0.4
+            }}
+            layout
+            className={clsx(
+                "group flex gap-3 w-full",
+                isMe ? "flex-row-reverse" : "flex-row",
+                isFirstInGroup ? "mt-8" : "mt-1",
+                isLastInGroup ? "mb-2" : "mb-0"
+            )}
+        >
             {/* Avatar Column */}
             <div className="w-10 shrink-0 flex flex-col justify-end pb-1">
                 {showAvatar && !isMe && (
@@ -175,8 +189,15 @@ export function MessageBubble({
                                         >
                                             {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current translate-x-0.5" />}
                                         </button>
-                                        <div className="flex-1 space-y-2.5">
-                                            <div className={clsx("h-1.5 rounded-full overflow-hidden shadow-inner", isMe ? "bg-black/5" : "bg-white/10")}>
+                                        <div className="flex-1 flex flex-col gap-1.5">
+                                            <div className="flex items-center gap-3">
+                                                <WaveformVisualizer 
+                                                    isActive={isPlaying} 
+                                                    barCount={24} 
+                                                    color={isMe ? "bg-black/40" : "bg-white/40"} 
+                                                />
+                                            </div>
+                                            <div className={clsx("h-1 rounded-full overflow-hidden shadow-inner", isMe ? "bg-black/5" : "bg-white/10")}>
                                                 <div 
                                                     className={clsx("h-full transition-all duration-300", isMe ? "bg-black" : "bg-white")}
                                                     style={{ width: `${audioProgress}%` }}
@@ -212,12 +233,18 @@ export function MessageBubble({
                                 )}
 
                                 {message.content && (
-                                    <p className={clsx(
-                                        "text-[15px] md:text-[15.5px] leading-[1.65] tracking-tight whitespace-pre-wrap break-words font-medium",
-                                        isMe ? "text-black" : "text-white"
-                                    )}>
-                                        {message.content}
-                                    </p>
+                                    <div className="space-y-2">
+                                        <p className={clsx(
+                                            "text-[15px] md:text-[15.5px] leading-[1.65] tracking-tight whitespace-pre-wrap break-words font-medium",
+                                            isMe ? "text-black" : "text-white"
+                                        )}>
+                                            {message.content}
+                                        </p>
+                                        {/* Auto Link Detection */}
+                                        {message.content.match(/https?:\/\/[^\s]+/g)?.map((url: string, i: number) => (
+                                            <LinkPreview key={i} url={url} />
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -300,6 +327,6 @@ export function MessageBubble({
                     )}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
