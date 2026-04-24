@@ -6,6 +6,7 @@ import { Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { StatusViewer } from "./StatusViewer";
 import clsx from "clsx";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
     const statuses = useQuery(api.statuses.getStatuses, { currentClerkId });
@@ -19,9 +20,28 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
     const otherStatuses = statuses.filter(s => s.userId !== currentUser?._id);
 
     return (
-        <div className="flex items-center gap-4 py-2 overflow-x-auto scrollbar-hide bg-transparent">
+        <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.1 }
+                }
+            }}
+            className="flex items-center gap-4 py-2 overflow-x-auto scrollbar-hide bg-transparent"
+        >
             {/* My Status */}
-            <div className="flex flex-col items-center gap-2.5 flex-shrink-0 cursor-pointer group">
+            <motion.div 
+                variants={{
+                    hidden: { opacity: 0, scale: 0.8, x: -20 },
+                    visible: { opacity: 1, scale: 1, x: 0 }
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex flex-col items-center gap-2.5 flex-shrink-0 cursor-pointer group"
+            >
                 <div className="relative">
                     <div
                         className="p-0.5 rounded-[1.25rem] ring-2 ring-white/10 group-hover:ring-white/30 transition-all duration-500 shadow-xl"
@@ -36,8 +56,9 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                             alt="My Vibe"
                         />
                     </div>
-                    <div
-                        className="absolute -bottom-1 -right-1 bg-white text-black rounded-lg p-1 border-2 border-[#080808] shadow-2xl group-hover:scale-110 transition-transform cursor-pointer"
+                    <motion.div
+                        whileHover={{ scale: 1.2, rotate: 90 }}
+                        className="absolute -bottom-1 -right-1 bg-white text-black rounded-lg p-1 border-2 border-[#080808] shadow-2xl transition-transform cursor-pointer"
                         onClick={(e) => {
                             e.stopPropagation();
                             setForceCreate(true);
@@ -45,18 +66,24 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                         }}
                     >
                         <Plus className="w-3 h-3 stroke-[3]" />
-                    </div>
+                    </motion.div>
                 </div>
                 <span className="text-[8px] font-black text-zinc-600 group-hover:text-zinc-400 uppercase tracking-widest italic transition-colors">You</span>
-            </div>
+            </motion.div>
 
             {/* Other Statuses */}
             {otherStatuses.map((s) => {
                 const isAllSeen = currentUser?.lastSeenStatus && s.items.every((item: any) => item.createdAt <= currentUser.lastSeenStatus!);
 
                 return (
-                    <div
+                    <motion.div
                         key={s.userId}
+                        variants={{
+                            hidden: { opacity: 0, scale: 0.8, y: 10 },
+                            visible: { opacity: 1, scale: 1, y: 0 }
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         className="flex flex-col items-center gap-2.5 flex-shrink-0 cursor-pointer group"
                         onClick={() => setViewingUser(s)}
                     >
@@ -80,7 +107,7 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                         <span className="text-[8px] font-black text-zinc-600 group-hover:text-zinc-400 uppercase tracking-widest italic truncate w-14 text-center transition-colors">
                             {s.user.name.split(' ')[0]}
                         </span>
-                    </div>
+                    </motion.div>
                 );
             })}
 
@@ -95,6 +122,6 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                     }}
                 />
             )}
-        </div>
+        </motion.div>
     );
 }
