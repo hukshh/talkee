@@ -103,8 +103,7 @@ function ConversationItem({ conversation, isActive, onSelect }: any) {
             <div
                 onClick={onSelect}
                 className={clsx(
-                    "sidebar-item relative group overflow-hidden animate-fade-in",
-                    isActive ? "sidebar-item-active" : "hover:bg-white/[0.02]"
+                    "sidebar-item group relative hover:bg-white/[0.03]"
                 )}
             >
                 {/* Active Indicator Glow */}

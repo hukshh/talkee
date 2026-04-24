@@ -84,14 +84,14 @@ export function Sidebar({
                 {/* Desktop Sidebar Content */}
                 <div className="flex flex-col w-full h-full p-0">
                     <div className="hidden md:flex items-center h-24 px-8 mb-2">
-                        <div className="flex items-center gap-3 w-full animate-fade-in">
+                        <div className="flex items-center gap-3 w-full">
                              <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
                         </div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto space-y-8 px-6 pb-12 custom-scrollbar">
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between px-2 animate-slide-up" style={{ animationDelay: '100ms' }}>
+                            <div className="flex items-center justify-between px-2">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.6)]" />
                                     <h2 className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.25em] italic">Conversations</h2>
@@ -105,7 +105,7 @@ export function Sidebar({
                                 </Button>
                             </div>
 
-                            <div className="flex gap-1.5 p-1.5 bg-white/[0.02] border border-white/[0.04] rounded-[22px] animate-slide-up shadow-inner" style={{ animationDelay: '200ms' }}>
+                            <div className="flex gap-1.5 p-1.5 bg-white/[0.02] border border-white/[0.04] rounded-[22px] shadow-inner">
                                 <button
                                     onClick={() => handleTabChange("conversations")}
                                     className={clsx(
@@ -126,7 +126,7 @@ export function Sidebar({
                                 </button>
                             </div>
 
-                            <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+                            <div className="space-y-6">
                                 {activeTab === "conversations" ? (
                                     <div className="space-y-4">
                                         {user?.id && <StatusRail currentClerkId={user.id} />}

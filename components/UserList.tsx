@@ -70,8 +70,7 @@ export function UserList({
                     <div
                         key={u._id}
                         onClick={() => onSelectConversation(u.clerkId)}
-                        className="sidebar-item group relative animate-fade-in hover:bg-white/[0.03]"
-                        style={{ animationDelay: `${i * 50}ms` }}
+                        className="sidebar-item group relative hover:bg-white/[0.03]"
                     >
                         <div className="relative">
                             <Avatar className="h-12 w-12 rounded-[1.25rem] border border-white/[0.06] group-hover:border-white/20 transition-all duration-500 shadow-lg">

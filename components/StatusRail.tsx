@@ -20,28 +20,9 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
     const otherStatuses = statuses.filter(s => s.userId !== currentUser?._id);
 
     return (
-        <motion.div 
-            initial="hidden"
-            animate="visible"
-            variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                    opacity: 1,
-                    transition: { staggerChildren: 0.1 }
-                }
-            }}
-            className="flex items-center gap-4 py-2 overflow-x-auto scrollbar-hide bg-transparent"
-        >
+        <div className="flex items-center gap-4 py-2 overflow-x-auto scrollbar-hide bg-transparent">
             {/* My Status */}
-            <motion.div 
-                variants={{
-                    hidden: { opacity: 0, scale: 0.8, x: -20 },
-                    visible: { opacity: 1, scale: 1, x: 0 }
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center gap-2.5 flex-shrink-0 cursor-pointer group"
-            >
+            <div className="flex flex-col items-center gap-2.5 flex-shrink-0 cursor-pointer group">
                 <div className="relative">
                     <div
                         className="p-0.5 rounded-[1.25rem] ring-2 ring-white/10 group-hover:ring-white/30 transition-all duration-500 shadow-xl"
@@ -56,9 +37,8 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                             alt="My Vibe"
                         />
                     </div>
-                    <motion.div
-                        whileHover={{ scale: 1.2, rotate: 90 }}
-                        className="absolute -bottom-1 -right-1 bg-white text-black rounded-lg p-1 border-2 border-[#080808] shadow-2xl transition-transform cursor-pointer"
+                    <div
+                        className="absolute -bottom-1 -right-1 bg-white text-black rounded-lg p-1 border-2 border-[#080808] shadow-2xl transition-transform cursor-pointer hover:scale-110"
                         onClick={(e) => {
                             e.stopPropagation();
                             setForceCreate(true);
@@ -66,25 +46,19 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                         }}
                     >
                         <Plus className="w-3 h-3 stroke-[3]" />
-                    </motion.div>
+                    </div>
                 </div>
                 <span className="text-[8px] font-black text-zinc-600 group-hover:text-zinc-400 uppercase tracking-widest italic transition-colors">You</span>
-            </motion.div>
+            </div>
 
             {/* Other Statuses */}
             {otherStatuses.map((s) => {
                 const isAllSeen = currentUser?.lastSeenStatus && s.items.every((item: any) => item.createdAt <= currentUser.lastSeenStatus!);
 
                 return (
-                    <motion.div
+                    <div
                         key={s.userId}
-                        variants={{
-                            hidden: { opacity: 0, scale: 0.8, y: 10 },
-                            visible: { opacity: 1, scale: 1, y: 0 }
-                        }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="flex flex-col items-center gap-2.5 flex-shrink-0 cursor-pointer group"
+                        className="flex flex-col items-center gap-2.5 flex-shrink-0 cursor-pointer group hover:scale-105 transition-transform"
                         onClick={() => setViewingUser(s)}
                     >
                         <div className={clsx(
@@ -107,7 +81,7 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                         <span className="text-[8px] font-black text-zinc-600 group-hover:text-zinc-400 uppercase tracking-widest italic truncate w-14 text-center transition-colors">
                             {s.user.name.split(' ')[0]}
                         </span>
-                    </motion.div>
+                    </div>
                 );
             })}
 
@@ -122,6 +96,6 @@ export function StatusRail({ currentClerkId }: { currentClerkId: string }) {
                     }}
                 />
             )}
-        </motion.div>
+        </div>
     );
 }
