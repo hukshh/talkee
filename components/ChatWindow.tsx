@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ArrowDown, Video, Phone, Smile, Paperclip, Mic, ChevronLeft, MoreVertical, X, MessageSquare, Loader2, Sparkles } from "lucide-react";
+import { Send, ArrowDown, Video, Phone, Smile, Paperclip, Mic, ChevronLeft, MoreVertical, X, MessageSquare, Loader2, Users as UsersIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
