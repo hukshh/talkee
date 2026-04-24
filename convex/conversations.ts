@@ -14,7 +14,6 @@ export const createConversation = mutation({
 
         if (!currentUser) throw new Error("User not found");
 
-        // Check if 1-on-1 already exists
         const conversations = await ctx.db.query("conversations").collect();
         const existing = conversations.find(
             (c) =>
@@ -27,7 +26,6 @@ export const createConversation = mutation({
             return existing._id;
         }
 
-        // Create new
         return await ctx.db.insert("conversations", {
             members: [currentUser._id, args.otherUserId],
             isGroup: false,
@@ -53,7 +51,6 @@ export const getConversationsForUser = query({
             c.members.includes(currentUser._id)
         );
 
-        // Hydrate with member info for groups and names for recipients
         const hydrated = [];
         for (const conv of userConversations) {
             const memberInfo = [];
@@ -69,15 +66,28 @@ export const getConversationsForUser = query({
                         clerkId: member.clerkId,
                         name: member.name,
                         avatarUrl: member.avatarUrl,
-                        gender: member.gender,
                         isOnline: presence?.isOnline ?? false,
                     });
                 }
             }
-            hydrated.push({ ...conv, memberInfo });
+
+            // Count unread messages
+            const unreadMessages = await ctx.db
+                .query("messages")
+                .withIndex("by_conversationId", (q) => q.eq("conversationId", conv._id))
+                .filter((q) => q.and(
+                    q.eq(q.field("seen"), false),
+                    q.neq(q.field("senderId"), currentUser._id)
+                ))
+                .collect();
+
+            hydrated.push({ 
+                ...conv, 
+                memberInfo,
+                unreadCount: unreadMessages.length
+            });
         }
 
-        // Sort by most recently updated
         return hydrated.sort((a, b) => b.updatedAt - a.updatedAt);
     },
 });
@@ -106,6 +116,7 @@ export const createGroup = mutation({
         });
     },
 });
+
 export const getConversationById = query({
     args: { conversationId: v.id("conversations") },
     handler: async (ctx, args) => {
@@ -125,7 +136,6 @@ export const getConversationById = query({
                     clerkId: member.clerkId,
                     name: member.name,
                     avatarUrl: member.avatarUrl,
-                    gender: member.gender,
                     isOnline: presence?.isOnline ?? false,
                 });
             }

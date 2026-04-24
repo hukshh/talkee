@@ -58,20 +58,6 @@ export function MobileNavbar({
                     )}
                 </Button>
 
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleTabClick("wallet")}
-                    className={clsx(
-                        "rounded-xl h-11 w-11 transition-all duration-300 relative group",
-                        activeTab === "wallet" && pathname === "/" ? "text-white" : "text-zinc-600 hover:text-zinc-400"
-                    )}
-                >
-                    <Coins className="w-5 h-5 transition-transform group-active:scale-75" />
-                    {activeTab === "wallet" && pathname === "/" && (
-                        <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full" />
-                    )}
-                </Button>
 
                 <div className={clsx(
                     "flex items-center justify-center rounded-xl h-11 w-11 transition-all duration-300 relative group",

@@ -17,18 +17,25 @@ export const syncUser = mutation({
             await ctx.db.patch(existingUser._id, {
                 name: args.name,
                 avatarUrl: args.avatarUrl,
-                lastSeenStatus: Date.now(),
             });
             return existingUser._id;
         }
 
-        return await ctx.db.insert("users", {
+        const userId = await ctx.db.insert("users", {
             clerkId: args.clerkId,
             name: args.name,
             avatarUrl: args.avatarUrl,
             createdAt: Date.now(),
-            lastSeenStatus: Date.now(),
         });
+
+        // Also create presence record
+        await ctx.db.insert("presence", {
+            userId,
+            isOnline: true,
+            lastSeen: Date.now(),
+        });
+
+        return userId;
     },
 });
 
@@ -66,29 +73,6 @@ export const createUser = mutation({
     },
 });
 
-export const updateUser = mutation({
-    args: {
-        clerkId: v.string(),
-        name: v.string(),
-        avatarUrl: v.optional(v.string()),
-    },
-    handler: async (ctx, args) => {
-        const existingUser = await ctx.db
-            .query("users")
-            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
-            .unique();
-
-        if (!existingUser) {
-            throw new Error("User not found");
-        }
-
-        await ctx.db.patch(existingUser._id, {
-            name: args.name,
-            avatarUrl: args.avatarUrl,
-        });
-    },
-});
-
 export const getAllUsers = query({
     args: {
         currentClerkId: v.optional(v.string()),
@@ -103,12 +87,13 @@ export const getAllUsers = query({
                     .unique();
 
                 let avatarUrl = user.avatarUrl;
-                if (avatarUrl && !avatarUrl.startsWith("http")) {
+                // Only try to get storage URL if it looks like a Convex storage ID (UUID-like or specific length)
+                // and doesn't start with http
+                if (avatarUrl && !avatarUrl.startsWith("http") && avatarUrl.length > 10 && avatarUrl !== "test") {
                     try {
                         avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
                     } catch (e) {
-                        console.error(`Failed to get storage URL for ${avatarUrl}:`, e);
-                        // Fallback to original value or null if it's clearly invalid
+                        console.error(`Failed to get storage URL for ${avatarUrl}`);
                     }
                 }
 
@@ -128,11 +113,11 @@ export const getUserById = query({
         const user = await ctx.db.get(args.userId);
         if (!user) return null;
         let avatarUrl = user.avatarUrl;
-        if (avatarUrl && !avatarUrl.startsWith("http")) {
+        if (avatarUrl && !avatarUrl.startsWith("http") && avatarUrl.length > 10 && avatarUrl !== "test") {
             try {
                 avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
             } catch (e) {
-                console.error(`Failed to get storage URL for ${avatarUrl}:`, e);
+                console.error(`Failed to get storage URL for ${avatarUrl}`);
             }
         }
         return { ...user, avatarUrl };
@@ -148,11 +133,11 @@ export const getCurrentUser = query({
             .unique();
         if (!user) return null;
         let avatarUrl = user.avatarUrl;
-        if (avatarUrl && !avatarUrl.startsWith("http")) {
+        if (avatarUrl && !avatarUrl.startsWith("http") && avatarUrl.length > 10 && avatarUrl !== "test") {
             try {
                 avatarUrl = await ctx.storage.getUrl(avatarUrl) || avatarUrl;
             } catch (e) {
-                console.error(`Failed to get storage URL for ${avatarUrl}:`, e);
+                console.error(`Failed to get storage URL for ${avatarUrl}`);
             }
         }
         return { ...user, avatarUrl };
@@ -164,11 +149,8 @@ export const onboardUser = mutation({
         currentClerkId: v.string(),
         name: v.string(),
         birthDate: v.optional(v.number()),
-        age: v.optional(v.number()),
         gender: v.string(),
         bio: v.optional(v.string()),
-        interests: v.optional(v.array(v.string())),
-        images: v.optional(v.array(v.string())),
         avatarUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
@@ -179,131 +161,16 @@ export const onboardUser = mutation({
 
         if (!user) throw new Error("User not found");
 
-        let birthDate = args.birthDate;
-        let finalAge = 0;
-
-        if (birthDate !== undefined) {
-            const birthDateObj = new Date(birthDate);
-            finalAge = new Date().getFullYear() - birthDateObj.getFullYear();
-        } else if (args.age !== undefined) {
-            finalAge = args.age;
-            // Approximate birthDate if only age is provided
-            birthDate = new Date(new Date().getFullYear() - finalAge, 0, 1).getTime();
-        } else {
-            throw new Error("Either birthDate or age must be provided.");
-        }
-
-        if (finalAge < 18) throw new Error("You must be 18 or older to use this app.");
-
         await ctx.db.patch(user._id, {
             name: args.name,
-            birthDate: birthDate,
+            birthDate: args.birthDate,
             gender: args.gender,
             bio: args.bio,
-            interests: args.interests,
-            images: args.images,
             avatarUrl: args.avatarUrl,
-            subscriptionTier: user.subscriptionTier || "free",
-            virtualCurrency: user.virtualCurrency || 0,
         });
     },
 });
 
 export const generateUploadUrl = mutation(async (ctx) => {
     return await ctx.storage.generateUploadUrl();
-});
-
-export const addVirtualCurrency = mutation({
-    args: {
-        currentClerkId: v.string(),
-        amount: v.number(),
-    },
-    handler: async (ctx, args) => {
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
-            .unique();
-
-        if (!user) throw new Error("User not found");
-
-        await ctx.db.patch(user._id, {
-            virtualCurrency: (user.virtualCurrency || 0) + args.amount,
-        });
-    },
-});
-
-export const upgradeSubscriptionTier = mutation({
-    args: {
-        currentClerkId: v.string(),
-        targetTier: v.union(v.literal("pro"), v.literal("ultra")),
-    },
-    handler: async (ctx, args) => {
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
-            .unique();
-
-        if (!user) throw new Error("User not found");
-
-        const cost = args.targetTier === "pro" ? 500 : 1000;
-        const currentCurrency = user.virtualCurrency || 0;
-
-        if (currentCurrency < cost) {
-            throw new Error("Insufficient virtual currency.");
-        }
-
-        await ctx.db.patch(user._id, {
-            virtualCurrency: currentCurrency - cost,
-            subscriptionTier: args.targetTier,
-        });
-    },
-});
-
-export const checkMyBirthday = query({
-    args: { currentClerkId: v.string() },
-    handler: async (ctx, args) => {
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
-            .unique();
-
-        if (!user || !user.birthDate) return null;
-
-        const today = new Date();
-        const birth = new Date(user.birthDate);
-
-        const isBirthday = today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate();
-
-        if (isBirthday) {
-            return {
-                name: user.name,
-                gender: user.gender,
-            };
-        }
-        return null;
-    },
-});
-
-export const deductVirtualCurrency = mutation({
-    args: {
-        currentClerkId: v.string(),
-        amount: v.number(),
-    },
-    handler: async (ctx, args) => {
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.currentClerkId))
-            .unique();
-
-        if (!user) throw new Error("User not found");
-
-        const currentCurrency = user.virtualCurrency || 0;
-        if (currentCurrency < args.amount) {
-            throw new Error("Insufficient balance.");
-        }
-
-        await ctx.db.patch(user._id, {
-            virtualCurrency: currentCurrency - args.amount,
-        });
-    },
 });

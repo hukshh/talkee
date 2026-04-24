@@ -48,6 +48,16 @@ export const getTypingUsers = query({
 
         // Only return users who typed in the last 2 seconds
         const now = Date.now();
-        return typings.filter((t) => t.isTyping && now - t.lastTypedAt < 2000);
+        const activeTyping = typings.filter((t) => t.isTyping && now - t.lastTypedAt < 2000);
+        
+        return await Promise.all(
+            activeTyping.map(async (t) => {
+                const user = await ctx.db.get(t.userId);
+                return {
+                    ...t,
+                    userName: user?.name?.split(' ')[0] || "Someone",
+                };
+            })
+        );
     },
 });

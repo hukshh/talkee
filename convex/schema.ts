@@ -10,14 +10,6 @@ export default defineSchema({
     birthDate: v.optional(v.number()),
     gender: v.optional(v.string()),
     bio: v.optional(v.string()),
-    fantasy: v.optional(v.array(v.string())),
-    desire: v.optional(v.array(v.string())),
-    interests: v.optional(v.array(v.string())),
-    images: v.optional(v.array(v.string())),
-    virtualCurrency: v.optional(v.number()),
-    subscriptionTier: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("ultra"))),
-    dailyVideoCalls: v.optional(v.number()),
-    lastCallResetDate: v.optional(v.string()),
     lastSeenStatus: v.optional(v.number()),
   }).index("by_clerkId", ["clerkId"]),
 
@@ -41,9 +33,16 @@ export default defineSchema({
     conversationId: v.id("conversations"),
     content: v.string(),
     imageUrl: v.optional(v.string()),
+    audioUrl: v.optional(v.string()),
+    fileUrl: v.optional(v.string()),
+    attachmentType: v.optional(v.union(v.literal("image"), v.literal("audio"), v.literal("file"))),
     createdAt: v.number(),
     seen: v.boolean(),
     deleted: v.optional(v.boolean()),
+    reactions: v.optional(v.array(v.object({
+      userId: v.id("users"),
+      emoji: v.string()
+    }))),
   }).index("by_conversationId", ["conversationId"]),
 
   typing: defineTable({
@@ -57,8 +56,8 @@ export default defineSchema({
     callerId: v.id("users"),
     receiverId: v.id("users"),
     status: v.union(v.literal("ringing"), v.literal("accepted"), v.literal("rejected"), v.literal("ended")),
-    sdpOffer: v.optional(v.string()), // JSON string of RTCSessionDescriptionInit
-    sdpAnswer: v.optional(v.string()), // JSON string of RTCSessionDescriptionInit
+    sdpOffer: v.optional(v.string()), 
+    sdpAnswer: v.optional(v.string()),
   })
     .index("by_receiver", ["receiverId"])
     .index("by_caller", ["callerId"]),
@@ -67,17 +66,8 @@ export default defineSchema({
     callId: v.id("calls"),
     userId: v.id("users"),
     type: v.union(v.literal("caller"), v.literal("receiver")),
-    candidate: v.string(), // JSON string of RTCIceCandidateInit
+    candidate: v.string(),
   }).index("by_call", ["callId"]),
-
-  swipes: defineTable({
-    swiperId: v.id("users"),
-    swipedId: v.id("users"),
-    action: v.union(v.literal("like"), v.literal("pass")),
-  })
-    .index("by_swiper", ["swiperId"])
-    .index("by_swiped", ["swipedId"])
-    .index("by_swipe", ["swiperId", "swipedId"]),
 
   statuses: defineTable({
     userId: v.id("users"),
@@ -90,5 +80,3 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_user", ["userId"]),
 }, { schemaValidation: false });
-
-

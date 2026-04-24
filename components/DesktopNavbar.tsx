@@ -25,7 +25,7 @@ export function DesktopNavbar({ onTabChange }: { onTabChange?: (tab: MobileTab) 
     };
 
     return (
-        <div className="hidden md:flex flex-col w-[100px] h-[calc(100vh-2rem)] my-4 ml-4 glass-grey rounded-[3rem] border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] items-center py-10 justify-between shrink-0 z-50">
+        <div className="hidden md:flex flex-col w-[80px] h-screen bg-[#050505] border-r border-white/5 shadow-2xl items-center py-10 justify-between shrink-0 z-50">
             <div className="flex flex-col items-center gap-10">
                 {/* Logo / Sparkle */}
                 <div className="relative group cursor-pointer" onClick={() => router.push("/")}>
@@ -48,12 +48,6 @@ export function DesktopNavbar({ onTabChange }: { onTabChange?: (tab: MobileTab) 
                         label="Discover"
                         isActive={activeTab === "discover"}
                         onClick={() => handleTabClick("discover")}
-                    />
-                    <NavItem
-                        icon={<Coins className="w-6 h-6" />}
-                        label="Wallet"
-                        isActive={activeTab === "wallet"}
-                        onClick={() => handleTabClick("wallet")}
                     />
                 </div>
             </div>

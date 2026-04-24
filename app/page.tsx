@@ -14,7 +14,6 @@ import { DesktopNavbar } from "@/components/DesktopNavbar";
 import { DiscoverFeed } from "@/components/DiscoverFeed";
 import { ProfileView } from "@/components/UserProfileModal";
 const ChatWindow = dynamic(() => import("@/components/ChatWindow").then((mod) => mod.ChatWindow), { ssr: false });
-const Wallet = dynamic(() => import("@/components/Wallet").then((mod) => mod.Wallet), { ssr: false });
 
 import { useNav, MobileTab } from "@/context/NavContext";
 import OnboardingForm from "@/components/OnboardingForm";
@@ -37,14 +36,10 @@ export default function Home() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  if (!isLoaded || !isSignedIn || currentUser === undefined) return <VibePreloader />;
+  if (!isLoaded || !isSignedIn || currentUser === undefined) return <Preloader />;
 
-  // Onboarding gate
-  const hasTags = (currentUser?.interests && currentUser.interests.length > 0) ||
-    (currentUser?.fantasy && currentUser.fantasy.length > 0) ||
-    (currentUser?.desire && currentUser.desire.length > 0);
-
-  if (!hasRecentlyOnboarded && currentUser && (!currentUser.birthDate || !currentUser.gender || !currentUser.bio || !hasTags)) {
+  // Onboarding gate - simplified for core features
+  if (!hasRecentlyOnboarded && currentUser && (!currentUser.name || !currentUser.bio)) {
     return (
       <main suppressHydrationWarning className="flex h-screen w-full bg-[#050505] dark">
         <OnboardingForm onComplete={() => {
@@ -71,7 +66,6 @@ export default function Home() {
     setActiveTab("discover");
   };
 
-  const isWalletActive = activeTab === "wallet";
   const isDiscoverActive = activeTab === "discover";
   const isChatsActive = activeTab === "chats";
 
@@ -88,7 +82,6 @@ export default function Home() {
         <Sidebar
           activeConversationId={activeConversationId}
           onSelectConversation={handleSelectConversation}
-          onSelectWallet={() => handleTabChange("wallet")}
           activeMobileTab={activeTab}
           onMobileTabChange={handleTabChange}
           hideOnMobile={!!activeConversationId}
@@ -100,24 +93,7 @@ export default function Home() {
         "flex-1 flex flex-col h-full bg-background relative z-10 transition-all duration-500",
         !activeConversationId && isChatsActive ? "hidden md:flex" : "flex"
       )}>
-        {isWalletActive ? (
-          <div className="flex-1 bg-background/50 backdrop-blur-3xl overflow-y-auto">
-            <div className="md:hidden flex items-center p-4 border-b border-white/[0.04] bg-[#080808]/80 backdrop-blur-2xl sticky top-0 z-50" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
-              <button
-                onClick={() => handleTabChange("chats")}
-                className="flex items-center gap-2 group"
-              >
-                <div className="w-8 h-8 glass rounded-lg flex items-center justify-center border-white/[0.06] group-active:scale-90 transition-all">
-                  <ChevronLeft className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-zinc-500 font-medium uppercase text-[10px] tracking-wider group-hover:text-white transition-colors">Back</span>
-              </button>
-            </div>
-            <Wallet />
-            {/* Mobile Nav Spacer */}
-            <div className="h-32 md:hidden" />
-          </div>
-        ) : selectedProfileId ? (
+        {selectedProfileId ? (
           <div className="flex-1 overflow-y-auto h-full custom-scrollbar animate-in fade-in duration-500">
              <div className="md:hidden flex items-center p-4 border-b border-white/[0.04] bg-[#080808]/80 backdrop-blur-2xl sticky top-0 z-50" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
               <button
@@ -135,7 +111,7 @@ export default function Home() {
                   onClick={() => setSelectedProfileId(undefined)}
                   className="absolute top-8 left-8 z-50 h-10 px-4 glass rounded-xl text-white hover:bg-white hover:text-black transition-all border-white/10 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest italic"
                 >
-                  <ChevronLeft className="w-4 h-4" /> Exit Resonance
+                  <ChevronLeft className="w-4 h-4" /> Exit Profile
                 </button>
              </div>
              <div className="min-h-full">
@@ -143,20 +119,12 @@ export default function Home() {
              </div>
           </div>
         ) : activeConversationId ? (
-          <div className="flex-1 bg-background/50 backdrop-blur-3xl">
-            {/* Mobile back button header */}
-            <div className="md:hidden flex items-center p-4 border-b border-white/[0.04] bg-[#080808]/80 backdrop-blur-2xl sticky top-0 z-50" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
-              <button
-                onClick={() => setActiveConversationId(undefined)}
-                className="flex items-center gap-2 group"
-              >
-                <div className="w-8 h-8 glass rounded-lg flex items-center justify-center border-white/[0.06] group-active:scale-90 transition-all">
-                  <ChevronLeft className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-zinc-500 font-medium uppercase text-[10px] tracking-wider group-hover:text-white transition-colors">Back</span>
-              </button>
-            </div>
-            <ChatWindow key={activeConversationId} conversationId={activeConversationId} />
+          <div className="flex-1 h-full overflow-hidden">
+            <ChatWindow 
+              key={activeConversationId} 
+              conversationId={activeConversationId} 
+              onBack={() => setActiveConversationId(undefined)}
+            />
           </div>
         ) : isDiscoverActive ? (
           <div className="flex-1 overflow-y-auto h-full custom-scrollbar">
@@ -166,8 +134,8 @@ export default function Home() {
               style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
             >
               <div className="space-y-0.5">
-                <h1 className="text-3xl font-black italic uppercase tracking-tighter leading-none vibe-gradient">Explore <span className="text-white/30">Vibes</span></h1>
-                <p className="text-[9px] font-medium text-zinc-600 uppercase tracking-widest">The global frequency</p>
+                <h1 className="text-3xl font-black italic uppercase tracking-tighter leading-none vibe-gradient">Discover</h1>
+                <p className="text-[9px] font-medium text-zinc-600 uppercase tracking-widest">Connect with others</p>
               </div>
               <div className="w-10 h-10 glass-silver rounded-xl flex items-center justify-center">
                 <Sparkles className="w-6 h-6 text-white" />
@@ -178,16 +146,37 @@ export default function Home() {
             <div className="h-40 md:hidden" />
           </div>
         ) : isChatsActive ? (
-          <div className="flex-1 flex flex-col items-center justify-center bg-background/50 backdrop-blur-3xl p-8 text-center space-y-6">
+          <div className="flex-1 flex flex-col items-center justify-center bg-background/50 backdrop-blur-3xl p-8 text-center space-y-10 animate-fade-in">
             <div className="relative group">
-              <div className="absolute -inset-8 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all duration-700" />
-              <div className="relative w-24 h-24 glass-silver rounded-[2rem] flex items-center justify-center border-white/5 shadow-2xl">
-                <Sparkles className="w-12 h-12 text-zinc-600" />
+              {/* Animated Glow Rings */}
+              <div className="absolute -inset-12 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-1000 animate-pulse" />
+              <div className="absolute -inset-24 bg-white/5 rounded-full blur-[100px] pointer-events-none" />
+              
+              <div className="relative w-28 h-28 glass-premium rounded-[2.5rem] flex items-center justify-center border-white/10 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-700">
+                <div className="w-16 h-16 glass-floating rounded-2xl flex items-center justify-center border-white/20">
+                  <Sparkles className="w-8 h-8 text-white animate-bounce-subtle" />
+                </div>
               </div>
             </div>
-            <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Start a <span className="text-zinc-600 text-3xl">Vibe</span></h2>
-              <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.3em] italic">Select a frequency from the sidebar to begin messaging</p>
+            
+            <div className="space-y-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
+              <div className="space-y-1">
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white leading-none">
+                  Your <span className="vibe-gradient text-4xl">Messages</span>
+                </h2>
+                <div className="h-1 w-12 bg-white/20 mx-auto rounded-full" />
+              </div>
+              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] italic max-w-[200px] mx-auto leading-relaxed">
+                Select a conversation to start your next premium experience
+              </p>
+            </div>
+
+            <div className="flex items-center gap-6 pt-4 opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700 animate-slide-up" style={{ animationDelay: '400ms' }}>
+               <MessageSquare className="w-5 h-5 text-zinc-500" />
+               <div className="w-1 h-1 rounded-full bg-zinc-800" />
+               <Zap className="w-5 h-5 text-zinc-500" />
+               <div className="w-1 h-1 rounded-full bg-zinc-800" />
+               <Users className="w-5 h-5 text-zinc-500" />
             </div>
           </div>
         ) : (
@@ -198,7 +187,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* Mobile Navigation Island - Hidden when in a chat to focus on messaging */}
+      {/* Mobile Navigation Island */}
       {!activeConversationId && <MobileNavbar activeTab={activeTab} onTabChange={handleTabChange} />}
     </main>
   );
@@ -216,7 +205,7 @@ function ProfileFrameWrapper({ profileId, currentUser, onClose }: { profileId: s
   return <ProfileView user={user} currentUser={currentUser} isStandalone={true} onClose={onClose} />;
 }
 
-function VibePreloader() {
+function Preloader() {
   return (
     <div className="fixed inset-0 z-[1000] bg-[#050505] flex flex-col items-center justify-center">
       <div className="relative group">
@@ -226,8 +215,8 @@ function VibePreloader() {
         </div>
       </div>
       <div className="mt-12 text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
-        <h2 className="text-3xl font-black italic uppercase tracking-tighter vibe-gradient">Vibe Mingle</h2>
-        <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-widest">Syncing...</p>
+        <h2 className="text-3xl font-black italic uppercase tracking-tighter vibe-gradient">Talkee</h2>
+        <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-widest">Connecting...</p>
       </div>
     </div>
   );
