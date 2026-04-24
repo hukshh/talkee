@@ -8,7 +8,7 @@ import { useNav, MobileTab } from "@/context/NavContext";
 import clsx from "clsx";
 
 export function DesktopNavbar({ onTabChange }: { onTabChange?: (tab: MobileTab) => void }) {
-    const { activeTab, setActiveTab } = useNav();
+    const { activeTab, setActiveTab, setShowLanding } = useNav();
     const router = useRouter();
     const pathname = usePathname();
     const { user, isSignedIn } = useUser();
@@ -19,6 +19,7 @@ export function DesktopNavbar({ onTabChange }: { onTabChange?: (tab: MobileTab) 
         } else {
             setActiveTab(tab);
         }
+        setShowLanding(false);
         if (pathname !== "/") {
             router.push("/");
         }
@@ -28,7 +29,7 @@ export function DesktopNavbar({ onTabChange }: { onTabChange?: (tab: MobileTab) 
         <div className="hidden md:flex flex-col w-[80px] h-screen bg-[#050505] border-r border-white/5 shadow-2xl items-center py-10 justify-between shrink-0 z-50">
             <div className="flex flex-col items-center gap-10">
                 {/* Logo / Sparkle */}
-                <div className="relative group cursor-pointer" onClick={() => router.push("/")}>
+                <div className="relative group cursor-pointer" onClick={() => setShowLanding(true)}>
                     <div className="absolute -inset-4 bg-white/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="w-14 h-14 glass-silver rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl transition-transform group-hover:scale-110 duration-500">
                         <Sparkles className="w-7 h-7 text-white" />

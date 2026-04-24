@@ -18,25 +18,26 @@ const ChatWindow = dynamic(() => import("@/components/ChatWindow").then((mod) =>
 import { useNav, MobileTab } from "@/context/NavContext";
 import OnboardingForm from "@/components/OnboardingForm";
 import { MobileNavbar } from "@/components/MobileNavbar";
+import { LandingPage } from "@/components/LandingPage";
 
 export default function Home() {
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>();
   const [selectedProfileId, setSelectedProfileId] = useState<string | undefined>();
   const [hasRecentlyOnboarded, setHasRecentlyOnboarded] = useState(false);
-  const { activeTab, setActiveTab } = useNav();
+  const { activeTab, setActiveTab, showLanding, setShowLanding } = useNav();
   const { isLoaded, isSignedIn, user } = useUser();
   const currentClerkId = user?.id;
   const router = useRouter();
 
   const currentUser = useQuery(api.users.getCurrentUser, currentClerkId ? { currentClerkId } : "skip");
 
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.push("/login");
-    }
-  }, [isLoaded, isSignedIn, router]);
+  if (!isLoaded) return <Preloader />;
 
-  if (!isLoaded || !isSignedIn || currentUser === undefined) return <Preloader />;
+  if (!isSignedIn || showLanding) {
+    return <LandingPage />;
+  }
+
+  if (currentUser === undefined) return <Preloader />;
 
   // Onboarding gate - simplified for core features
   if (!hasRecentlyOnboarded && currentUser && (!currentUser.name || !currentUser.bio)) {
@@ -137,7 +138,10 @@ export default function Home() {
                 <h1 className="text-3xl font-black italic uppercase tracking-tighter leading-none vibe-gradient">Discover</h1>
                 <p className="text-[9px] font-medium text-zinc-600 uppercase tracking-widest">Connect with others</p>
               </div>
-              <div className="w-10 h-10 glass-silver rounded-xl flex items-center justify-center">
+              <div 
+                className="w-10 h-10 glass-silver rounded-xl flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+                onClick={() => setShowLanding(true)}
+              >
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
             </div>

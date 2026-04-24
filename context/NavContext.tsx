@@ -6,15 +6,18 @@ export type MobileTab = "chats" | "discover" | "wallet";
 type NavContextType = {
     activeTab: MobileTab;
     setActiveTab: (tab: MobileTab) => void;
+    showLanding: boolean;
+    setShowLanding: (show: boolean) => void;
 };
 
 const NavContext = createContext<NavContextType | undefined>(undefined);
 
 export function NavProvider({ children }: { children: ReactNode }) {
     const [activeTab, setActiveTab] = useState<MobileTab>("discover");
+    const [showLanding, setShowLanding] = useState(false);
 
     return (
-        <NavContext.Provider value={{ activeTab, setActiveTab }}>
+        <NavContext.Provider value={{ activeTab, setActiveTab, showLanding, setShowLanding }}>
             {children}
         </NavContext.Provider>
     );
