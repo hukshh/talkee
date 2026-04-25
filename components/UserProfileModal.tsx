@@ -17,9 +17,10 @@ interface ProfileViewProps {
     currentUser: any;
     isStandalone?: boolean;
     onClose?: () => void;
+    onSelectConversation?: (id: string) => void;
 }
 
-export function ProfileView({ user, currentUser, isStandalone, onClose }: ProfileViewProps) {
+export function ProfileView({ user, currentUser, isStandalone, onClose, onSelectConversation }: ProfileViewProps) {
     const createConversation = useMutation(api.conversations.createConversation);
     const [isRequested, setIsRequested] = useState(false);
 
@@ -35,12 +36,15 @@ export function ProfileView({ user, currentUser, isStandalone, onClose }: Profil
 
     const handlePing = async () => {
         try {
-            await createConversation({
+            const convoId = await createConversation({
                 currentClerkId: currentUser.clerkId,
                 otherUserId: user._id,
             });
             setIsRequested(true);
             toast.success(`Frequency established with ${user.name}`);
+            if (onSelectConversation) {
+                onSelectConversation(convoId);
+            }
             if (onClose) onClose();
         } catch (error) {
             toast.error("Failed to establish frequency.");
@@ -221,16 +225,17 @@ interface UserProfileModalProps {
     currentUser: any;
     isOpen: boolean;
     onClose: () => void;
+    onSelectConversation?: (id: string) => void;
 }
 
-export function UserProfileModal({ user, currentUser, isOpen, onClose }: UserProfileModalProps) {
+export function UserProfileModal({ user, currentUser, isOpen, onClose, onSelectConversation }: UserProfileModalProps) {
     if (!user) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent showCloseButton={false} className="max-w-[700px] p-0 overflow-hidden bg-[#050505] border-white/5 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] dark">
+            <DialogContent showCloseButton={false} className="max-w-4xl p-0 overflow-hidden bg-[#050505] border-white/5 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] dark">
                 <ScrollArea className="max-h-[90vh]">
-                    <ProfileView user={user} currentUser={currentUser} onClose={onClose} />
+                    <ProfileView user={user} currentUser={currentUser} onClose={onClose} onSelectConversation={onSelectConversation} />
                 </ScrollArea>
             </DialogContent>
         </Dialog>

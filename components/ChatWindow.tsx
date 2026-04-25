@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ArrowDown, Video, Phone, Smile, Paperclip, Mic, ChevronLeft, MoreVertical, X, MessageSquare, Loader2, Users as UsersIcon } from "lucide-react";
+import { Send, ArrowDown, Video, Phone, Smile, Paperclip, Mic, ChevronLeft, MoreVertical, X, MessageSquare, Loader2, Users as UsersIcon, PlusCircle, Search, ShieldCheck } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,7 +11,7 @@ import { MessageBubble } from "./MessageBubble";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import clsx from "clsx";
-import { UserProfileModal } from "./UserProfileModal";
+import { UserProfileModal, ProfileView } from "./UserProfileModal";
 import { Id } from "@/convex/_generated/dataModel";
 import { StatusViewer } from "./StatusViewer";
 import { VideoCall } from "./VideoCall";
@@ -20,7 +20,7 @@ import { EmojiPicker } from "./EmojiPicker";
 import { AudioRecorder } from "./AudioRecorder";
 import { format } from "date-fns";
 
-export function ChatWindow({ conversationId, onBack }: { conversationId: string; onBack?: () => void }) {
+export function ChatWindow({ conversationId, onBack, onSelectConversation }: { conversationId: string; onBack?: () => void; onSelectConversation?: (id: string) => void }) {
     const { user } = useUser();
     const [message, setMessage] = useState("");
     const [isTyping, setIsTyping] = useState(false);
@@ -47,6 +47,12 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string;
     const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
     const typingUsers = useQuery(api.typing.getTypingUsers, { conversationId: convId });
     const markAllAsSeen = useMutation(api.messages.markAllAsSeen);
+    const addMember = useMutation(api.conversations.addMember);
+    const removeMember = useMutation(api.conversations.removeMember);
+    const allUsers = useQuery(api.users.getAllUsers, user?.id ? { currentClerkId: user.id } : "skip");
+
+    const [isAddingMember, setIsAddingMember] = useState(false);
+    const [memberSearchQuery, setMemberSearchQuery] = useState("");
 
     const otherUserId = conversation?.members?.find((id) => id !== currentUser?._id);
     const otherUserFetch = useQuery(api.users.getUserById, otherUserId ? { userId: otherUserId } : "skip");
@@ -206,7 +212,7 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string;
         <div className="flex flex-col h-full bg-textured relative overflow-hidden">
             {/* Top Bar - Floating Premium */}
             <div className="h-[80px] border-b border-white/[0.03] bg-[#080808]/60 backdrop-blur-3xl z-50 shrink-0 sticky top-0">
-                <div className="max-w-3xl mx-auto h-full px-10 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto h-full px-6 md:px-12 flex items-center justify-between">
                     <div className="flex items-center gap-6 min-w-0">
                         {onBack && (
                             <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 glass-premium text-white shrink-0" onClick={onBack}>
@@ -256,12 +262,14 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string;
                             <Button variant="ghost" size="icon" className="h-11 w-11 text-zinc-500 hover:text-white hover:bg-white/5 transition-all rounded-xl" onClick={() => setActiveCall(true)}>
                                 <Video className="w-5 h-5" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-11 w-11 text-zinc-500 hover:text-white hover:bg-white/5 transition-all rounded-xl">
-                                <Phone className="w-4.5 h-4.5" />
-                            </Button>
                         </div>
                         <div className="w-px h-8 bg-white/[0.05] mx-1 hidden md:block" />
-                        <Button variant="ghost" size="icon" className="h-12 w-12 glass-premium text-zinc-500 hover:text-white hover:bg-white/5 transition-all rounded-2xl border-white/[0.04]">
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-12 w-12 glass-premium text-zinc-500 hover:text-white hover:bg-white/5 transition-all rounded-2xl border-white/[0.04]"
+                            onClick={() => setShowMembers(true)}
+                        >
                             <MoreVertical className="w-5 h-5" />
                         </Button>
                     </div>
@@ -270,8 +278,11 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string;
 
             {/* Chat Area - Layered & Centered */}
             <div className="flex-1 relative overflow-hidden flex flex-col min-h-0 bg-transparent">
-                <ScrollArea className="flex-1" onScroll={handleScroll}>
-                    <div className="max-w-3xl mx-auto px-10 py-16 space-y-4 min-h-full flex flex-col">
+                <div 
+                    className="flex-1 overflow-y-auto custom-scrollbar" 
+                    onScroll={handleScroll}
+                >
+                    <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 space-y-4 min-h-full flex flex-col">
                         {groupedMessages.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center py-40 text-center animate-fade-in">
                                 <div className="w-24 h-24 glass-premium rounded-[3rem] flex items-center justify-center border-white/[0.05] mb-10 shadow-2xl">
@@ -306,7 +317,7 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string;
                         )}
                         <div ref={scrollRef} className="h-12 shrink-0" />
                     </div>
-                </ScrollArea>
+                </div>
 
                 {showScrollButton && (
                     <button
@@ -321,7 +332,7 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string;
 
             {/* Input Bar - Advanced Floating Glassmorphism */}
             <div className="py-10 bg-transparent relative z-50">
-                <div className="max-w-3xl mx-auto px-10 relative">
+                <div className="max-w-7xl mx-auto px-6 md:px-12 relative">
                     {isRecording ? (
                         <div className="glass-floating rounded-[2.5rem] p-4 animate-scale-up border-white/20 shadow-2xl">
                             <AudioRecorder onSend={handleVoiceSend} onCancel={() => setIsRecording(false)} />
@@ -404,39 +415,200 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string;
 
             {/* Overlays */}
             {showMembers && (
-                <div className="absolute inset-0 z-[200] bg-[#0a0a0a]/98 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="h-full flex flex-col p-12">
-                        <div className="flex items-center justify-between mb-12">
-                            <h2 className="text-3xl font-bold text-white tracking-tight">Group Members</h2>
-                            <Button onClick={() => setShowMembers(false)} variant="ghost" size="icon" className="h-12 w-12 rounded-xl text-white hover:bg-white/10">
-                                <X className="w-6 h-6" />
-                            </Button>
-                        </div>
-                        <ScrollArea className="flex-1">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {conversation.memberInfo?.map(u => (
-                                    <div
-                                        key={u._id}
-                                        className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center gap-4 cursor-pointer hover:bg-white/[0.05] transition-all group"
-                                        onClick={() => { setSelectedUser(u); setShowMembers(false); }}
-                                    >
-                                        <Avatar className="h-14 w-14 rounded-xl border border-white/10 group-hover:border-white/20 transition-all shadow-md">
-                                            <AvatarImage src={u.avatarUrl} className="object-cover" />
-                                            <AvatarFallback className="bg-zinc-900 text-zinc-500 font-bold text-xl">{u.name[0]}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="min-w-0">
-                                            <p className="text-lg font-bold text-white truncate">{u.name}</p>
-                                            <span className="text-xs text-zinc-500 truncate block">{u.bio || 'Available'}</span>
-                                        </div>
+                <div className="absolute inset-0 z-[200] bg-[#0a0a0a]/98 backdrop-blur-3xl animate-in fade-in duration-300">
+                    <div className="h-full flex flex-col p-8 md:p-12">
+                        {conversation.isGroup ? (
+                            <>
+                                <div className="flex items-center justify-between mb-12">
+                                    <div>
+                                        <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">
+                                            {isAddingMember ? "Add Member" : "Group Management"}
+                                        </h2>
+                                        <p className="text-[11px] font-black text-blue-500 uppercase tracking-widest italic mt-2">
+                                            {isAddingMember ? "Expand the circle" : `${conversation.memberInfo?.length || 0} Members Synchronized`}
+                                        </p>
                                     </div>
-                                ))}
+                                    <div className="flex gap-4">
+                                        {!isAddingMember && (
+                                            <Button 
+                                                onClick={() => setIsAddingMember(true)} 
+                                                className="h-14 px-8 bg-white text-black hover:bg-zinc-200 font-black text-[11px] uppercase tracking-[0.2em] transition-all rounded-2xl shadow-[0_10px_30px_rgba(255,255,255,0.1)] active:scale-95"
+                                            >
+                                                <PlusCircle className="w-5 h-5 mr-3" /> Add Member
+                                            </Button>
+                                        )}
+                                        <Button 
+                                            onClick={() => {
+                                                if (isAddingMember) setIsAddingMember(false);
+                                                else setShowMembers(false);
+                                            }} 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-14 w-14 rounded-2xl text-white hover:bg-white/10 glass-premium"
+                                        >
+                                            <X className="w-7 h-7" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {isAddingMember ? (
+                                    <div className="flex flex-col h-full overflow-hidden space-y-8">
+                                        <div className="relative">
+                                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+                                            <input 
+                                                type="text"
+                                                placeholder="Search users to invite..."
+                                                value={memberSearchQuery}
+                                                onChange={(e) => setMemberSearchQuery(e.target.value)}
+                                                className="w-full h-16 pl-16 pr-8 bg-white/[0.03] border border-white/10 rounded-2xl text-white placeholder:text-zinc-700 focus:outline-none focus:border-white/20 focus:bg-white/[0.05] transition-all font-bold text-lg text-white"
+                                            />
+                                        </div>
+                                        <ScrollArea className="flex-1">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                {allUsers?.filter(u => 
+                                                    !conversation.members.includes(u._id) && 
+                                                    u.name.toLowerCase().includes(memberSearchQuery.toLowerCase())
+                                                ).map(u => (
+                                                    <div
+                                                        key={u._id}
+                                                        className="p-5 rounded-3xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-between group hover:bg-white/[0.04] hover:border-white/10 transition-all duration-500"
+                                                    >
+                                                        <div className="flex items-center gap-5">
+                                                            <Avatar className="h-14 w-14 rounded-2xl border border-white/10 group-hover:border-white/20 transition-all shadow-xl">
+                                                                <AvatarImage src={u.avatarUrl} className="object-cover" />
+                                                                <AvatarFallback className="bg-zinc-900 text-zinc-500 font-bold">{u.name[0]}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="min-w-0">
+                                                                <p className="text-[15px] font-black text-white truncate uppercase italic">{u.name}</p>
+                                                                <span className="text-[10px] text-zinc-600 truncate block font-bold uppercase tracking-widest mt-0.5">Available for frequency</span>
+                                                            </div>
+                                                        </div>
+                                                        <Button 
+                                                            size="sm" 
+                                                            className="h-10 px-5 bg-white text-black hover:bg-emerald-500 hover:text-white transition-all rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-90"
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await addMember({ conversationId: convId, userId: u._id });
+                                                                    toast.success(`${u.name} initialized in group`);
+                                                                } catch (e) {
+                                                                    toast.error("Handshake failed");
+                                                                }
+                                                            }}
+                                                        >
+                                                            Add
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
+                                    </div>
+                                ) : (
+                                    <ScrollArea className="flex-1">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {conversation.memberInfo?.map(u => (
+                                                <div
+                                                    key={u._id}
+                                                    className="p-5 rounded-3xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-between group hover:bg-white/[0.04] hover:border-white/10 transition-all duration-500"
+                                                >
+                                                    <div 
+                                                        className="flex items-center gap-5 cursor-pointer"
+                                                        onClick={() => { setSelectedUser(u); setShowMembers(false); }}
+                                                    >
+                                                        <div className="relative">
+                                                            <Avatar className="h-14 w-14 rounded-2xl border border-white/10 group-hover:border-white/20 transition-all shadow-xl">
+                                                                <AvatarImage src={u.avatarUrl} className="object-cover" />
+                                                                <AvatarFallback className="bg-zinc-900 text-zinc-500 font-bold">{u.name?.[0] || '?'}</AvatarFallback>
+                                                            </Avatar>
+                                                            {u.isOnline && <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-[3px] border-black shadow-lg" />}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-[15px] font-black text-white truncate uppercase italic">{u.name} {u._id === currentUser?._id && <span className="text-blue-500 ml-1">(Self)</span>}</p>
+                                                            <span className="text-[10px] text-zinc-600 truncate block font-bold uppercase tracking-widest mt-0.5">{u.bio || 'Frequency Active'}</span>
+                                                        </div>
+                                                    </div>
+                                                    {u._id !== currentUser?._id && (
+                                                        <Button 
+                                                            variant="ghost"
+                                                            className="h-10 px-4 text-red-500/70 border border-red-500/10 hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(239,68,68,0.05)]"
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation();
+                                                                try {
+                                                                    await removeMember({ conversationId: convId, userId: u._id });
+                                                                    toast.success(`${u.name} disconnected`);
+                                                                } catch (err) {
+                                                                    toast.error("Disconnection failed");
+                                                                }
+                                                            }}
+                                                        >
+                                                            Remove
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                )}
+                            </>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center space-y-12 max-w-2xl mx-auto text-center">
+                                <div className="space-y-4">
+                                    <h2 className="text-5xl font-black italic uppercase tracking-tighter text-white">Chat Controls</h2>
+                                    <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[11px]">Manage your connection with {otherUser?.name}</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 w-full gap-4">
+                                    <Button 
+                                        className="h-20 bg-white text-black hover:bg-red-500 hover:text-white font-black text-sm uppercase tracking-[0.2em] transition-all rounded-3xl shadow-2xl flex items-center justify-center gap-4"
+                                        onClick={() => {
+                                            toast.error("Block feature pending backend integration");
+                                            setShowMembers(false);
+                                        }}
+                                    >
+                                        <ShieldCheck className="w-6 h-6" /> Block User
+                                    </Button>
+                                    <Button 
+                                        variant="ghost"
+                                        className="h-20 bg-white/[0.03] border border-white/5 text-zinc-400 hover:bg-white/10 hover:text-white font-black text-sm uppercase tracking-[0.2em] transition-all rounded-3xl flex items-center justify-center gap-4"
+                                        onClick={() => {
+                                            toast.error("Chat deletion pending backend integration");
+                                            setShowMembers(false);
+                                        }}
+                                    >
+                                        <X className="w-6 h-6" /> Delete Conversation
+                                    </Button>
+                                    <Button 
+                                        variant="ghost"
+                                        className="h-16 text-zinc-600 hover:text-white transition-all font-black uppercase tracking-widest text-[10px]"
+                                        onClick={() => setShowMembers(false)}
+                                    >
+                                        Return to Frequency
+                                    </Button>
+                                </div>
                             </div>
-                        </ScrollArea>
+                        )}
                     </div>
                 </div>
             )}
 
-            {selectedUser && <UserProfileModal user={selectedUser} currentUser={currentUser} isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} />}
+            {selectedUser && (
+                <div className="absolute inset-0 z-[300] bg-[#050505] animate-in slide-in-from-bottom-10 duration-700">
+                    <button 
+                        onClick={() => setSelectedUser(null)}
+                        className="absolute top-8 left-8 z-[310] h-12 px-6 glass-floating rounded-2xl text-white hover:bg-white hover:text-black transition-all border border-white/20 flex items-center gap-3 text-[11px] font-black uppercase tracking-widest italic shadow-2xl"
+                    >
+                        <ChevronLeft className="w-5 h-5" /> Exit Profile
+                    </button>
+                    <ScrollArea className="h-full">
+                        <ProfileView 
+                            user={selectedUser} 
+                            currentUser={currentUser} 
+                            isStandalone={true} 
+                            onClose={() => setSelectedUser(null)} 
+                            onSelectConversation={onSelectConversation}
+                        />
+                    </ScrollArea>
+                </div>
+            )}
             {viewingStatus && <StatusViewer user={viewingStatus} currentClerkId={user?.id || ""} onClose={() => setViewingStatus(null)} />}
             {activeCall && otherUser && <VideoCall isCaller={true} receiverId={otherUser._id} onClose={() => setActiveCall(false)} />}
         </div>

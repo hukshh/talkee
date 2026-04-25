@@ -52,7 +52,7 @@ export default function Home() {
   }
 
   const handleSelectConversation = (id: string) => {
-    setActiveConversationId(id);
+    setActiveConversationId(id || undefined);
     if (id) setActiveTab("chats");
   };
 
@@ -116,7 +116,7 @@ export default function Home() {
                 </button>
              </div>
              <div className="min-h-full">
-                <ProfileFrameWrapper profileId={selectedProfileId} currentUser={currentUser} onClose={() => setSelectedProfileId(undefined)} />
+                <ProfileFrameWrapper profileId={selectedProfileId} currentUser={currentUser} onClose={() => setSelectedProfileId(undefined)} onSelectConversation={handleSelectConversation} />
              </div>
           </div>
         ) : activeConversationId ? (
@@ -125,6 +125,7 @@ export default function Home() {
               key={activeConversationId} 
               conversationId={activeConversationId} 
               onBack={() => setActiveConversationId(undefined)}
+              onSelectConversation={handleSelectConversation}
             />
           </div>
         ) : isDiscoverActive ? (
@@ -197,7 +198,7 @@ export default function Home() {
   );
 }
 
-function ProfileFrameWrapper({ profileId, currentUser, onClose }: { profileId: string, currentUser: any, onClose: () => void }) {
+function ProfileFrameWrapper({ profileId, currentUser, onClose, onSelectConversation }: { profileId: string, currentUser: any, onClose: () => void, onSelectConversation?: (id: string) => void }) {
   const user = useQuery(api.users.getUserById, { userId: profileId as any });
   
   if (!user) return (
@@ -206,7 +207,7 @@ function ProfileFrameWrapper({ profileId, currentUser, onClose }: { profileId: s
     </div>
   );
 
-  return <ProfileView user={user} currentUser={currentUser} isStandalone={true} onClose={onClose} />;
+  return <ProfileView user={user} currentUser={currentUser} isStandalone={true} onClose={onClose} onSelectConversation={onSelectConversation} />;
 }
 
 function Preloader() {

@@ -7,7 +7,7 @@ import { UserList } from "./UserList";
 import { ConversationList } from "./ConversationList";
 import { MessageSquare, Users, PlusCircle, User as UserIcon, Settings2, Search, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -32,13 +32,23 @@ export function Sidebar({
     hideOnMobile?: boolean;
 }) {
     const { user } = useUser();
-    const [activeTab, setActiveTab] = useState<Tab>("conversations");
+    const [activeTab, setActiveTab] = useState<Tab>(activeMobileTab === "discover" ? "users" : "conversations");
     const [searchQuery, setSearchQuery] = useState("");
     const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
 
+    useEffect(() => {
+        if (activeMobileTab === "discover") {
+            setActiveTab("users");
+        } else if (activeMobileTab === "chats") {
+            setActiveTab("conversations");
+        }
+    }, [activeMobileTab]);
+
     const currentUser = useQuery(api.users.getCurrentUser, user?.id ? { currentClerkId: user.id } : "skip");
+
+    const createConversation = useMutation(api.conversations.createConversation);
 
     const handleTabChange = (tab: Tab) => {
         setActiveTab(tab);
@@ -99,7 +109,7 @@ export function Sidebar({
                                 <Button
                                     onClick={() => setIsGroupModalOpen(true)}
                                     size="sm"
-                                    className="h-8 px-4 rounded-xl glass-premium text-white hover:bg-white hover:text-black font-black text-[9px] uppercase tracking-widest transition-all active:scale-95"
+                                    className="h-8 px-4 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-black text-[9px] uppercase tracking-widest transition-all active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.4)]"
                                 >
                                     <PlusCircle className="w-3.5 h-3.5 mr-2" /> Group
                                 </Button>
@@ -133,14 +143,23 @@ export function Sidebar({
                                         <ConversationList
                                             activeConversationId={activeConversationId}
                                             onSelectConversation={onSelectConversation}
+                                            searchQuery={searchQuery}
                                         />
                                     </div>
                                 ) : (
                                     <UserList
                                         searchQuery={searchQuery}
-                                        onSelectConversation={(id) => {
-                                            onSelectConversation(id);
-                                            setActiveTab("conversations");
+                                        onSelectConversation={async (userId) => {
+                                            try {
+                                                const convoId = await createConversation({
+                                                    currentClerkId: user?.id || "",
+                                                    otherUserId: userId as any,
+                                                });
+                                                onSelectConversation(convoId);
+                                                setActiveTab("conversations");
+                                            } catch (e) {
+                                                console.error("Failed to create conversation", e);
+                                            }
                                         }}
                                     />
                                 )}
@@ -161,9 +180,6 @@ export function Sidebar({
                                 <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Settings & Bio</p>
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-11 w-11 glass-premium rounded-2xl text-zinc-500 hover:text-white transition-all border-white/0 hover:border-white/10 active:scale-90">
-                            <Settings2 className="w-5.5 h-5.5" />
-                        </Button>
                     </div>
                 </div>
             </div>

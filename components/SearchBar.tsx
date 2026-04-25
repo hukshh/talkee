@@ -17,7 +17,7 @@ export function SearchBar({
             </div>
             <Input
                 placeholder="Search..."
-                className="pl-12 h-12 glass-premium border-white/[0.04] focus-visible:border-white/[0.15] focus-visible:ring-0 focus-visible:bg-white/[0.06] rounded-2xl text-[14px] font-bold tracking-tight placeholder:text-zinc-700 transition-all duration-500 shadow-xl"
+                className="pl-12 h-12 glass-premium border-white/[0.04] focus-visible:border-white/[0.15] focus-visible:ring-0 focus-visible:bg-white/[0.06] rounded-2xl text-[14px] font-bold tracking-tight text-white placeholder:text-zinc-700 transition-all duration-500 shadow-xl"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />

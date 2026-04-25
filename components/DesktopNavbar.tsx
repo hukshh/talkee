@@ -54,13 +54,6 @@ export function DesktopNavbar({ onTabChange }: { onTabChange?: (tab: MobileTab) 
             </div>
 
             <div className="flex flex-col items-center gap-6">
-                <NavItem
-                    icon={<Settings2 className="w-6 h-6" />}
-                    label="Settings"
-                    isActive={pathname === "/settings"}
-                    onClick={() => router.push("/settings")}
-                />
-
                 {/* Profile / User */}
                 <div className="relative group p-1 transition-all duration-500">
                     <div className={clsx(

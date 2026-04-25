@@ -146,3 +146,47 @@ export const getConversationById = query({
         return { ...conversation, memberInfo };
     },
 });
+
+export const addMember = mutation({
+    args: {
+        conversationId: v.id("conversations"),
+        userId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+        const conversation = await ctx.db.get(args.conversationId);
+        if (!conversation) throw new Error("Conversation not found");
+        if (!conversation.isGroup) throw new Error("Not a group");
+
+        if (conversation.members.includes(args.userId)) {
+            return;
+        }
+
+        await ctx.db.patch(args.conversationId, {
+            members: [...conversation.members, args.userId],
+            updatedAt: Date.now(),
+        });
+    },
+});
+
+export const removeMember = mutation({
+    args: {
+        conversationId: v.id("conversations"),
+        userId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+        const conversation = await ctx.db.get(args.conversationId);
+        if (!conversation) throw new Error("Conversation not found");
+        if (!conversation.isGroup) throw new Error("Not a group");
+
+        const newMembers = conversation.members.filter((id) => id !== args.userId);
+        
+        if (newMembers.length === 0) {
+            await ctx.db.delete(args.conversationId);
+        } else {
+            await ctx.db.patch(args.conversationId, {
+                members: newMembers,
+                updatedAt: Date.now(),
+            });
+        }
+    },
+});

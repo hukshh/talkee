@@ -15,9 +15,11 @@ import clsx from "clsx";
 export function ConversationList({
     onSelectConversation,
     activeConversationId,
+    searchQuery = "",
 }: {
     onSelectConversation: (convoId: string) => void;
     activeConversationId?: string;
+    searchQuery?: string;
 }) {
     const { user } = useUser();
     const currentClerkId = user?.id;
@@ -37,15 +39,26 @@ export function ConversationList({
         );
     }
 
-    if (conversations.length === 0) {
+    const filteredConversations = conversations.filter((c) => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        if (c.isGroup) {
+            return c.groupName?.toLowerCase().includes(query);
+        }
+        return c.memberInfo?.some((m: any) => 
+            m.clerkId !== user?.id && m.name?.toLowerCase().includes(query)
+        );
+    });
+
+    if (filteredConversations.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 px-4 text-center space-y-4">
                 <div className="w-16 h-16 glass-darker rounded-2xl flex items-center justify-center border border-white/5 shadow-2xl">
                     <MessageSquare className="w-8 h-8 text-zinc-700" />
                 </div>
                 <div className="space-y-1">
-                    <p className="text-white font-bold text-sm tracking-tight">No conversations yet</p>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest italic">Discover users to start chatting</p>
+                    <p className="text-white font-bold text-sm tracking-tight">No results found</p>
+                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest italic">Try searching for something else</p>
                 </div>
             </div>
         );
@@ -54,7 +67,7 @@ export function ConversationList({
     return (
         <ScrollArea className="h-full flex-1">
             <div className="space-y-0.5 p-2 pb-40 md:pb-0 custom-scrollbar">
-                {conversations.map((c) => (
+                {filteredConversations.map((c) => (
                     <ConversationItem
                         key={c._id}
                         conversation={c}

@@ -69,7 +69,7 @@ export function UserList({
                 {filteredUsers?.map((u, i) => (
                     <div
                         key={u._id}
-                        onClick={() => onSelectConversation(u.clerkId)}
+                        onClick={() => onSelectConversation(u._id)}
                         className="sidebar-item group relative hover:bg-white/[0.03]"
                     >
                         <div className="relative">
