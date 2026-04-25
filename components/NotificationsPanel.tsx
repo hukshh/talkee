@@ -12,17 +12,13 @@ export function NotificationsPanel({ onSelectUser }: { onSelectUser: (id: string
     const currentClerkId = user?.id;
 
     const [isOpen, setIsOpen] = useState(false);
-    const pendingLikes = useQuery(api.matches.getPendingLikes, currentClerkId ? { currentClerkId } : "skip");
-    const swipeMutation = useMutation(api.matches.swipe);
+    const pendingLikes: any[] = []; // Legacy matching system disabled
     const createConversation = useMutation(api.conversations.createConversation);
 
     const handleAction = async (swipedId: string, action: "like" | "pass") => {
         if (!currentClerkId) return;
-
-        // Process the swipe
-        await swipeMutation({ currentClerkId, swipedId: swipedId as any, action });
-
-        // If accepted, immediately create conversation and select the chat
+        
+        // Match logic disabled for messaging focus
         if (action === "like") {
             const convoId = await createConversation({ currentClerkId, otherUserId: swipedId as any });
             setIsOpen(false);
